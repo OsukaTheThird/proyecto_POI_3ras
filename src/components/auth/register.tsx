@@ -35,7 +35,7 @@ const Register = () => {
   }
 
   return (
-    <div>
+    <div className="p-5">
       <Card className="bg-white">
         <CardHeader>
           <CardTitle>Registro</CardTitle>
@@ -106,6 +106,30 @@ const Register = () => {
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="photoURL"
+              
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              render={({ field: { value, onChange, ...fieldProps } }) => (
+                <FormItem>
+                  <FormLabel>Picture</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...fieldProps}
+                      placeholder="Foto de perfil"
+                      type="file"
+                      accept="image/*, application/pdf"
+                      onChange={(event) =>
+                        onChange(event.target.files && event.target.files[0])
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />  
             <Button type="submit">Registrarse</Button>
           </form>
         </Form>

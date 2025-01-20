@@ -25,14 +25,14 @@ const Login = () => {
     },
   })
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
     console.log(values)
   }
 
   return (
-    <div>
+    <div className="p-5" > 
       <Card className="bg-white">
         <CardHeader>
           <CardTitle>Syum</CardTitle>
