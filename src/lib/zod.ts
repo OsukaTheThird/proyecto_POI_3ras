@@ -24,3 +24,9 @@ export const registerformSchema = z.object({
 .refine((data) => data.password === data.confirmPassword, {
   message: "Las dos contraseñas deben ser iguales"
 });
+
+export const searchFormSchema = z.object({
+  email: z.string().email(
+    "Por favor introduzca un correo válido"
+  )
+});
