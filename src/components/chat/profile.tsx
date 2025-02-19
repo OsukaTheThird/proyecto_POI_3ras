@@ -2,7 +2,7 @@ import { Button } from "../ui/button";
 
 const Profile = () => {
   return (
-    <div className="p-4 text-center">
+    <div className="p-4 text-center border-l">
       <img 
         src="https://randomuser.me/api/portraits/med/men/44.jpg" 
         alt="" 

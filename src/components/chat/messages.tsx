@@ -1,9 +1,15 @@
-import React from 'react'
-
+import React from 'react';
+import MessagesHeader from './messages-header';
+import MessagesFooter from './messages-footer';
+import MessagesChat from './messages-chat';
 const Messages = () => {
   return (
-    <div className='bg bg-orange-300'>Messages</div>
+    <article className='grid grid-rows-[auto_1fr_auto] h-screen border-r'>
+      <MessagesHeader />
+      <MessagesChat />
+      <MessagesFooter />
+      </article>
   )
 }
 
-export default Messages
+export default Messages;
