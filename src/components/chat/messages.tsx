@@ -1,4 +1,4 @@
-import React from 'react';
+
 import MessagesHeader from './messages-header';
 import MessagesFooter from './messages-footer';
 import MessagesChat from './messages-chat';

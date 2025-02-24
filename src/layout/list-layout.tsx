@@ -1,7 +1,9 @@
 
 const List = () => {
   return (
-    <div>List</div>
+    <div>
+      <h1>Esta es la pantalla de tareas</h1>
+    </div>
   )
 }
 
