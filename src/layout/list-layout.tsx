@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Button } from '../components/ui/button';
 import {Input} from '../components/ui/input';
+import Navbar from "./navbar"
+
 
 const List = () => {
   const [tasks, setTasks] = useState<{ text: string; completed: boolean }[]>([]);
@@ -23,10 +25,14 @@ const List = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-xl shadow-lg">
+    <div className="h-screen">
+    <Navbar />
+
+    <div className="max-w-md mx-auto mt-10 p-6 bg-green-200 rounded-xl shadow-lg">
+      
       <h1 className="text-2xl font-bold mb-4 text-center">Agenda de Tareas</h1>
 
-      <div className="flex">
+      <div className="flex ">
         <Input
           type="text"
           placeholder="Nueva tarea..."
@@ -42,7 +48,7 @@ const List = () => {
         </Button>
       </div>
 
-      <ul className="mt-4 space-y-2">
+      <ul className="mt-4 space-y-2 bg-white rounded-lg shadow">
         {tasks.map((task, index) => (
           <li
             key={index}
@@ -68,6 +74,7 @@ const List = () => {
         ))}
       </ul>
     </div>
+  </div>
   );
 };
 
