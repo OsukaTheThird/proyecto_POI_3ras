@@ -14,8 +14,14 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { AuthError, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
+import { useAuth, useStorage } from "reactfire"
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage"
 
 const Register = () => {
+
+  const auth = useAuth();
+  const storage = useStorage();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -28,10 +34,39 @@ const Register = () => {
     },
   })
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values)
+     try{
+      const {user} = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      console.log("usuario creado");
+
+      // 1. Guardar foto de perfil en storage
+      const storageRef = ref(storage, "fotoPerfil/" + user.uid + ".jpg")
+      await uploadBytes(storageRef, values.photoURL);
+ 
+      // 2. Recuperar la foto de perfil de la base de datos
+      const photoURL = await getDownloadURL(storageRef)
+
+      // 3. Mostrar/Actualizar la foto de perfil del usuario
+      await updateProfile(user, {
+        displayName: values.displayName,
+        photoURL
+      });
+
+      console.log("Perfil actualizado")
+    } catch (error){
+      console.log(error);
+
+      const firebaseError = error as AuthError;
+
+      if (firebaseError.code === "auth/email-already-in-use") {
+        form.setError("email", {
+          type: "manual",
+          message: "Correo ya en uso",
+        });
+        return;
+      }
+    } 
   }
 
   return (
@@ -92,7 +127,7 @@ const Register = () => {
 
             <FormField
               control={form.control}
-              name="password"
+              name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Confirmar contraseña</FormLabel>

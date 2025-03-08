@@ -14,8 +14,12 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { AuthError, signInWithEmailAndPassword } from "firebase/auth"
+import { useAuth } from "reactfire"
 
 const Login = () => {
+
+  const auth = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -29,6 +33,25 @@ const Login = () => {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
     console.log(values)
+    try{
+
+      await signInWithEmailAndPassword(auth, values.email, values.password)
+
+    } catch(error)  {
+      console.log(error)
+      const firebaseError = error as AuthError;
+
+      if (firebaseError.code === "auth/invalid-login-credentials"){
+        form.setError("email",{
+          type: "manual",
+          message: "Credenciales invalidas"
+        });
+        form.setError("password",{
+          type: "manual",
+          message: "Credenciales invalidas"
+        });
+      }
+    }
   }
 
   return (
