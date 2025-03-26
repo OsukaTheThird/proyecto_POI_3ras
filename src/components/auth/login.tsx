@@ -16,10 +16,12 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AuthError, signInWithEmailAndPassword } from "firebase/auth"
 import { useAuth } from "reactfire"
+import { useLoadingStore } from "@/store/loading-store"
 
 const Login = () => {
 
   const auth = useAuth();
+  const {loading, setLoading} = useLoadingStore();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -32,11 +34,9 @@ const Login = () => {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
-    console.log(values)
     try{
-
+      setLoading(true);
       await signInWithEmailAndPassword(auth, values.email, values.password)
-
     } catch(error)  {
       console.log(error)
       const firebaseError = error as AuthError;
@@ -51,6 +51,8 @@ const Login = () => {
           message: "Credenciales invalidas"
         });
       }
+    } finally{
+      setLoading(false);
     }
   }
 
@@ -94,7 +96,7 @@ const Login = () => {
                 </FormItem>
               )}
             />
-            <Button type="submit">Iniciar Sesión</Button>
+            <Button type="submit" disabled={loading}>Iniciar Sesión</Button>
           </form>
         </Form>
         </CardContent>

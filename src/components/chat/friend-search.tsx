@@ -1,10 +1,8 @@
+import { Button } from "@/components/ui/button"
 import {searchFormSchema as formSchema} from '@/lib/zod'
-
 import {zodResolver} from "@hookform/resolvers/zod"
 import {useForm} from "react-hook-form"
 import { z } from 'zod'
-
-import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
@@ -15,8 +13,13 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { RoomDB, UserRoom } from "@/schemas/firestore-schema";
+import { collection, query, where, getDocs, limit } from 'firebase/firestore'
+import { useFirestore } from 'reactfire'
 
 const FriendSearch = () => {
+
+    const db = useFirestore();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -26,7 +29,17 @@ const FriendSearch = () => {
     })
 
     async function onSubmit(values:z.infer<typeof formSchema>) {
-        console.log(values)
+      try{
+        const q = query(collection(db, "users"), where ("email", "==", 
+          values.email), limit(1));
+
+          const querySnapshot = await getDocs(q);
+
+          const friendDB = querySnapshot.docs[0].data();
+          console.log({friendDB});
+      }  catch(error){
+        console.log(error)
+      }
     }
   
     return (

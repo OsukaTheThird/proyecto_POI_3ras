@@ -2,21 +2,21 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ChatLayout from "./chat-layout";
 import AuthLayout from "./auth-layout";
 import List from "./list-layout"; // Importa tu componente de tareas
-import { useUser } from "reactfire";
+import { useSigninCheck } from "reactfire";
+import { useLoadingStore } from "@/store/loading-store";
 
 const RootLayout = () => {
-    const { status, data: user} = useUser();
+    const { status, data: signInCheckResult} = useSigninCheck();
+    const {loading} = useLoadingStore();
 
     if (status === 'loading'){
         return <span> Cargando</span>
     }
-
-    console.log({user});
     
     return (
         <Router>
             <div>
-                {user ? (
+                {signInCheckResult.signedIn && !loading? (
                     <Routes>
                         <Route path="/" element={<ChatLayout />} />
                         <Route path="/tareas" element={<List />} />
