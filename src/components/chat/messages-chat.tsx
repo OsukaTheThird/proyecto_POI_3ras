@@ -1,74 +1,55 @@
-import React from 'react'
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef,useState } from 'react';
 import Message from './message';
 import { ref } from 'firebase/storage';
+//import { Message } from 'react-hook-form';
+import { Message as MessageInterface } from '@/schemas/firestore-schema';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { useAuth, useFirestore } from 'reactfire';
+import { format } from 'timeago.js';
 
-const MessagesChat = () => {
+interface MessagesChatProps {
+    friend: {
+        displayName: string;
+        photoURL: string;
+        lastMessage: string;
+        roomid: string;
+    }
+}
+const MessagesChat = ({friend}:MessagesChatProps) => {
 const containerRef = useRef<HTMLDivElement>(null);
-console.log(containerRef);
+const db = useFirestore();
+const {currentUser} = useAuth();
 
+console.log(containerRef);
+ const[message, setMessage] = useState<MessageInterface[]>([]);
 useEffect(() => {
     if (containerRef.current) {
         containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }   
 }, []);
+
+useEffect(() => {
+    const roomRef = doc(db, 'rooms', friend.roomid);
+    const unSubscribe = onSnapshot(roomRef, (document) => {
+        console.log(document.data());
+        setMessage(document.data()?.messages ?? []);
+    })
+    return () => unSubscribe();
+}, []);
 //este corchete va hacer pendiente de que algo cambie
   return (
     
 <main ref={containerRef} className='p-4 flex-1 bg-green-200 space-y-2 cursor-pointer custom-scrollbar'>
-        <Message 
-         message='Hola, ¿cómo estás?'
-            time='Hoy'
-            photoURL='https://randomuser.me/api/portraits/men/40.jpg'
-            isCurrentUser={false}   
-        />
-        <Message 
-         message='Aún así 🙅‍♂️ pues no el que esta persona 👩 haya estado en mi vida ⛺🌌 no ✖ ha hecho que me sienta 
-                    mejor ✔📈 porque tu lugar 🏞 y lo que significas 🫵 para mí 🧏🏻‍♂️ en mi vida´⛺🌌 es algo irremplazable 
-                    🗑️✖ es algo que no voy a volver a vivir 🙁🥤💧 y es algo que literalmente 👍✔ forma parte de de mi 
-                    👦👈 y de mi vida 🧏🏻‍♂️🌌 y va a ser así siempre ♾️ y yo no sé por qué no 😕✖ o sea 🤔💭 por qué solo 
-                    dejaba pasar el tiempo ⏳⏰ y no hacía nada 😐✖ y sabía que lo tenía que hacer y no 🤚⛔✖ y no podía 
-                    😐⛔✖ y no podía 😕⛔✖ y no podía 😿⛔✖ o sea 🙁 cuando estaba a punto de hacerlo 🏃🏽 sentía que me 
-                    bloqueaba 🚫🛑🚧 y no podía 😕🚫'
-            time='Hoy'
-            photoURL='https://randomuser.me/api/portraits/med/men/44.jpg'
-            isCurrentUser={true}/>
-        <Message 
-         message='Hola, ¿cómo estás?'
-            time='Hoy'
-            photoURL='https://randomuser.me/api/portraits/men/40.jpg'
-            isCurrentUser={false}   
-        />
-        <Message 
-         message='Aún así 🙅‍♂️ pues no el que esta persona 👩 haya estado en mi vida ⛺🌌 no ✖ ha hecho que me sienta 
-                    mejor ✔📈 porque tu lugar 🏞 y lo que significas 🫵 para mí 🧏🏻‍♂️ en mi vida´⛺🌌 es algo irremplazable 
-                    🗑️✖ es algo que no voy a volver a vivir 🙁🥤💧 y es algo que literalmente 👍✔ forma parte de de mi 
-                    👦👈 y de mi vida 🧏🏻‍♂️🌌 y va a ser así siempre ♾️ y yo no sé por qué no 😕✖ o sea 🤔💭 por qué solo 
-                    dejaba pasar el tiempo ⏳⏰ y no hacía nada 😐✖ y sabía que lo tenía que hacer y no 🤚⛔✖ y no podía 
-                    😐⛔✖ y no podía 😕⛔✖ y no podía 😿⛔✖ o sea 🙁 cuando estaba a punto de hacerlo 🏃🏽 sentía que me 
-                    bloqueaba 🚫🛑🚧 y no podía 😕🚫'
-            time='Hoy'
-            photoURL='https://randomuser.me/api/portraits/med/men/44.jpg'
-            isCurrentUser={true}/>
-        <Message 
-         message='Hola, ¿cómo estás?'
-            time='Hoy'
-            photoURL='https://randomuser.me/api/portraits/men/40.jpg'
-            isCurrentUser={false}   
-        />
-        <Message 
-         message='Aún así 🙅‍♂️ pues no el que esta persona 👩 haya estado en mi vida ⛺🌌 no ✖ ha hecho que me sienta 
-                    mejor ✔📈 porque tu lugar 🏞 y lo que significas 🫵 para mí 🧏🏻‍♂️ en mi vida´⛺🌌 es algo irremplazable 
-                    🗑️✖ es algo que no voy a volver a vivir 🙁🥤💧 y es algo que literalmente 👍✔ forma parte de de mi 
-                    👦👈 y de mi vida 🧏🏻‍♂️🌌 y va a ser así siempre ♾️ y yo no sé por qué no 😕✖ o sea 🤔💭 por qué solo 
-                    dejaba pasar el tiempo ⏳⏰ y no hacía nada 😐✖ y sabía que lo tenía que hacer y no 🤚⛔✖ y no podía 
-                    😐⛔✖ y no podía 😕⛔✖ y no podía 😿⛔✖ o sea 🙁 cuando estaba a punto de hacerlo 🏃🏽 sentía que me 
-                    bloqueaba 🚫🛑🚧 y no podía 😕🚫'
-            time='Hoy'
-            photoURL='https://randomuser.me/api/portraits/med/men/44.jpg'
-            isCurrentUser={true}/>
-
-
+{message.map((message,index) => (
+    <Message key={index} 
+    message={message.message}
+    time={format(message.timestamp)}
+    photoURL={message.uid === currentUser?.uid 
+        ? currentUser?.photoURL || '' 
+        : friend.photoURL}
+    isCurrentUser={message.uid === currentUser?.uid}
+    />
+))}
       </main>  )
 }
 

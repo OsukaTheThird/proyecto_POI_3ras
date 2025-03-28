@@ -11,6 +11,7 @@ interface Friend {
   displayName: string;
   photoURL: string;
   lastMessage: string;
+  roomid: string;
 }
 const Friends = () => {
 
@@ -55,7 +56,6 @@ const Friends = () => {
             ?.rooms.find((room: UserRoom) => room.friendId === friend.id);
 
           // console.log({ room });
-
           const data = friend.data();
 
           console.log({
