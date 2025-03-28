@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-interface Friend {
+export interface Friend {
   uid : string; 
   displayName: string;
   photoURL: string;

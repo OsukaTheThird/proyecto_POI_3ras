@@ -5,7 +5,7 @@ import { BsFillSendFill } from "react-icons/bs";
 import { arrayUnion, doc, updateDoc, getDoc, Firestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { useUser, useFirestore } from 'reactfire'
-import { get } from 'http';
+//import { get } from 'http';
 import { UserDB } from '@/schemas/firestore-schema';
 import { Friend } from '@/store/chat-store';
 
@@ -55,7 +55,7 @@ const MessagesFooter = ({ friend }: MessagesFooterProps) => {
       const currentRoomId=friend.roomid;
       //actualizar el lastMessage
     await updateLastMessage(db, auth.currentUser!.uid, friend.roomid, message);
-    await updateLastMessage(db, friend.uid, friend.roomid, message);
+    await updateLastMessage(db, friend.uid, currentRoomId, message);
       setMessage("");
     } catch (error) {
       console.log(error);
