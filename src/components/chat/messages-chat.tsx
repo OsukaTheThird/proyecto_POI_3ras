@@ -26,7 +26,7 @@ useEffect(() => {
     if (containerRef.current) {
         containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }   
-}, []);
+}, [message]);
 
 useEffect(() => {
     const roomRef = doc(db, 'rooms', friend.roomid);

@@ -1,12 +1,15 @@
 import { useAuth, useUser} from "reactfire";
 import { Button } from "../ui/button";
+import { useChatStore } from "@/store/chat-store";
 
 const Profile = () => {
 
   const auth = useAuth();
   const {data: user} = useUser();
+  const {resetFriend} = useChatStore();
 
   const handleClickLogout = async () => {
+    resetFriend();
     await auth.signOut();
   }
   

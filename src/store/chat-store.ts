@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 interface Friend {
+  uid : string; 
   displayName: string;
   photoURL: string;
   lastMessage: string;
