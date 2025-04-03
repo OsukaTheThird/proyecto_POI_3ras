@@ -9,19 +9,19 @@ const products = [
     id: 1,
     name: "Ballenas estelares",
     price: 79,
-    image: "assets/images/ballena.png",
+    image: "src/assets/images/sin-bordes.png",
   },
   {
     id: 2,
     name: "Vivir en las nubes",
     price: 79,
-    image: "assets/images/nubes.png",
+    image: "src/assets/images/marco.png",
   },
   {
     id: 3,
     name: "Espejismo",
     price: 79,
-    image: "assets/images/espejismo.png",
+    image: "src/assets/images/borde-para-cuadros-de-marco.png",
   },
 ];
 
