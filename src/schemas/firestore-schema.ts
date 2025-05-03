@@ -9,6 +9,7 @@ export interface UserRoom{
 export interface UserDB {
     displayName: string;
     email: string;
+    password: string;
     photoURL: string;
     decorationId: string;
     uid: string;
@@ -24,6 +25,7 @@ export interface Message{
 
 //coleccion de grupos(rooms)
 export interface RoomDB {
+    groupName: string;
     messages: Message[];
     users: string[];
 }
@@ -33,6 +35,7 @@ export const users: Record<string, UserDB> = {
     user1: {
       displayName: "user1",
       email: "user1@domain.com",
+      password: "123456",
       photoURL: "https://...",
       decorationId: "1",
       uid: "user1",
@@ -49,6 +52,7 @@ export const users: Record<string, UserDB> = {
     user2: {
       displayName: "user2",
       email: "user2@domain.com",
+      password: "123456",
       photoURL: "https://...",
       decorationId: "1",
       uid: "user2",
@@ -66,6 +70,7 @@ export const users: Record<string, UserDB> = {
   
   export const rooms: Record<string, RoomDB> = {
     room1: {
+      groupName:"Grupo amigos",
       messages: [
         {
           message: "Hola",

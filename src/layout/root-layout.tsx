@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ChatLayout from "./chat-layout";
 import AuthLayout from "./auth-layout";
+import GroupLayout from "./groups-layout";
 import List from "./list-layout"; // Importa tu componente de tareas
 import { useSigninCheck } from "reactfire";
 import { useLoadingStore } from "@/store/loading-store";
@@ -21,6 +22,7 @@ const RootLayout = () => {
                     <Routes>
                         <Route path="/" element={<ChatLayout />} />
                         <Route path="/tareas" element={<List />} />
+                        <Route path="/grupos" element={<GroupLayout />} />
                         <Route path="/tienda" element={<Store />} />
                     </Routes>
                 ) : (
