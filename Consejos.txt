@@ -1,0 +1,12 @@
+usar la misma logica de agregar amigos al momento de crear el chat group (room), solo que agregando mas de un usuario
+
+si hay mas de dos usuarios mostrar el nombre del grupo en lugar del nombre de los usuarios
+
+al momento de crear un grupo, usar un grupo item (este estara basado en un friend item)
+
+crear los grupos a base de los amigos que uno ya tenga 
+
+los mejor será hacer otra pestaña de grupos para que se pueda desplegar ahi los group item
+
+hacer un form simple para agregar amigos al chat grupal
+
