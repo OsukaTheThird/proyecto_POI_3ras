@@ -27,7 +27,7 @@ export interface Message{
 export interface RoomDB {
     groupName: string;
     messages: Message[];
-    users: string[];
+    users: string[]; //UserDB(?)
 }
 
 //simulacion de la base de datos
