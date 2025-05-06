@@ -8,7 +8,7 @@ const ChatLayout = () => {
   
   return (
     <div className="h-screen">
-      <div className="absolute top-0 left-0 w-full bg-white">
+      <div className="top-0 left-0 w-full bg-white">
         <Navbar />
       </div>
         <div className="grid grid-cols-[2fr_5fr_2fr] h-screen flex-grow">

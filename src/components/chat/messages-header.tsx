@@ -1,6 +1,6 @@
 import React from 'react'
 import { Button } from '@/components/ui/button';
-import { BsBoxArrowLeft } from "react-icons/bs";
+import { BsBoxArrowLeft, BsTelephone } from "react-icons/bs";
 import { useChatStore } from '@/store/chat-store';
 
 
@@ -16,6 +16,12 @@ const MessagesHeader = () => {
       </div>
       {/* 
        */}
+
+      <div className='p-4'>
+        <Button>
+          <BsTelephone />
+        </Button>
+      </div>
 
       <div className=''>
         <Button

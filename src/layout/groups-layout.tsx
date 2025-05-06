@@ -1,8 +1,7 @@
 import Groups from "@/components/chat/groups"
 import Messages from "@/components/chat/messages"
-import Profile from "@/components/chat/profile"
-import GroupInfo	 from "@/components/chat/group-info"
 import Navbar from "./navbar"
+import GroupProfile from "@/components/chat/group-profile"
 
 const GroupLayout = () => {
     return (
@@ -13,7 +12,7 @@ const GroupLayout = () => {
             <div className="grid grid-cols-[2fr_5fr_2fr] h-screen flex-grow">
             <Groups />
             <Messages />
-            <GroupInfo />
+            <GroupProfile />
           </div>
         </div>
       )

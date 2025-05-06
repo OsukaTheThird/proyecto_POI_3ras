@@ -30,3 +30,7 @@ export const searchFormSchema = z.object({
     "Por favor introduzca un correo válido"
   )
 });
+
+export const createformSchema = z.object({
+  emails: z.string().min(1, "Debe ingresar al menos un correo"),
+});

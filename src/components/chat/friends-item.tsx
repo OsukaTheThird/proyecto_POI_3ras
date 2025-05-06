@@ -19,9 +19,8 @@ const FriendsItem = ({
 
   return (
     <article
-      className={`flex items-center gap-x-3 py-2 px-4 border-b ${
-        friend ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-200 cursor-pointer"
-      }`}
+      className={`flex items-center gap-x-3 py-2 px-4 border-b ${friend ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-200 cursor-pointer"
+        }`}
       onClick={() => {
         if (friend) {
           alert("Debes salir del chat actual antes de seleccionar otro.");
