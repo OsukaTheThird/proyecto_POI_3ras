@@ -85,6 +85,7 @@ const FriendSearch = () => {
       const newRoomDB: RoomDB = {
         messages: [],
         users: [auth.currentUser?.uid, friendDB.uid],
+        groupName: ""
       };
       const roomRef = await addDoc(collection(db, "rooms"), newRoomDB);
       console.log("1. Room creada")
@@ -107,19 +108,26 @@ const FriendSearch = () => {
       const currentUserRef = doc(db, "users", auth.currentUser!.uid);
       const friendRef = doc(db, "users", friendDB.uid);
 
-      await updateDoc(currentUserRef, {
-        rooms: arrayUnion(currentUserRoom),
-        friends: arrayUnion(friendDB.uid)
-      });
-      console.log("2. Current user room added")
+// En FriendSearch.tsx
+await updateDoc(currentUserRef, {
+  rooms: arrayUnion({
+    roomid: roomRef.id,
+    friendId: friendDB.uid, // Asegúrate que esto es un string válido
+    lastMessage: "",
+    timestamp: new Date().toISOString()
+  }),
+  friends: arrayUnion(friendDB.uid) // Asegúrate que esto es un string válido
+});
 
-      await updateDoc(friendRef, {
-        rooms: arrayUnion(friendRoom),
-        friends: arrayUnion(auth.currentUser!.uid),
-      });
-      console.log("3. Friend room added")
-
-      form.reset();
+await updateDoc(friendRef, {
+  rooms: arrayUnion({
+    roomid: roomRef.id,
+    friendId: auth.currentUser!.uid, // Asegúrate que esto es un string válido
+    lastMessage: "",
+    timestamp: new Date().toISOString()
+  }),
+  friends: arrayUnion(auth.currentUser!.uid) // Asegúrate que esto es un string válido
+});      form.reset();
 
     } catch (error) {
       console.log(error)
