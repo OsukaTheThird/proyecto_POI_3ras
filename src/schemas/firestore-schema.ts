@@ -27,6 +27,9 @@ export interface Message{
 export interface RoomDB {
     groupName: string;
     messages: Message[];
+    lastMessage?: string;
+    timestamp?: string;
+    groupPhoto?: string;
     users: string[]; //UserDB(?)
 }
 

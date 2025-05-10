@@ -5,6 +5,8 @@ interface MessageProps {
   time: string;
   photoURL: string;
   isCurrentUser: boolean;
+      senderName?: string; // Add senderName as an optional property
+
 }
 const Message = ({ message, time, photoURL, isCurrentUser }: MessageProps) => {
   return (

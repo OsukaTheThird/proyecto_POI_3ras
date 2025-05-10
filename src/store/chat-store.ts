@@ -16,26 +16,55 @@ export interface Group {
   roomid: string;
 }
 
+type ChatType = 'friend' | 'group';
+
 interface ChatStore {
-  friend: Friend | null;
-  setFriend: (friend: Friend) => void; // Add setFriend to the interface
-  resetFriend: () => void; // Add resetFriend to the interface
+  currentChat: {
+    type: ChatType;
+    data: Friend | Group;
+  } | null;
+  setFriend: (friend: Friend) => void;
+  setGroup: (group: Group) => void;
+  resetChat: () => void;
+  // Helpers para acceder fácilmente a los datos
+  isGroupChat: () => boolean;
+  getChatData: () => Friend | Group | null;
+  getRoomId: () => string | null;
 }
 
-interface GroupChatStore {
-  groupChat: Group | null;
-  setGroup: (groupChat: Group) => void;
-  resetGroup: () => void;
-}
-
-export const useChatStore = create<ChatStore>((set) => ({
-  friend: null,
-  setFriend: (friend: Friend) => set({ friend }),
-  resetFriend: () => set({ friend: null }), // Implement resetFriend
+export const useChatStore = create<ChatStore>((set, get) => ({
+  currentChat: null,
+  
+  setFriend: (friend: Friend) => set({ 
+    currentChat: { 
+      type: 'friend', 
+      data: friend 
+    } 
+  }),
+  
+  setGroup: (group: Group) => set({ 
+    currentChat: { 
+      type: 'group', 
+      data: group 
+    } 
+  }),
+  
+  resetChat: () => set({ currentChat: null }),
+  
+  isGroupChat: () => {
+    const { currentChat } = get();
+    return currentChat?.type === 'group';
+  },
+  
+  getChatData: () => {
+    const { currentChat } = get();
+    return currentChat?.data || null;
+  },
+  
+  getRoomId: () => {
+    const { currentChat } = get();
+    return currentChat?.data.roomid || null;
+  }
 }));
 
-export const useGroupChatStore = create<GroupChatStore>((set) => ({
-  groupChat: null,
-  setGroup: (groupChat: Group) => set({ groupChat }),
-  resetGroup: () => set({ groupChat: null }),
-}));
+// Elimina useGroupChatStore ya que ahora está unificado

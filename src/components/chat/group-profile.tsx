@@ -1,14 +1,14 @@
 import { useAuth, useUser } from "reactfire";
 import { Button } from "../ui/button";
-import { useGroupChatStore } from "@/store/chat-store";
+import { useChatStore } from "@/store/chat-store";
 
 const GroupProfile = () => {
     const auth = useAuth();
     const { data: user } = useUser();
-    const { resetGroup } = useGroupChatStore();
+    const { resetChat } = useChatStore();
 
     const handleClickLogout = async () => {
-        resetGroup();
+        resetChat();
         await auth.signOut();
     }
 

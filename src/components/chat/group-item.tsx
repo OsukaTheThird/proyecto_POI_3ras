@@ -1,4 +1,4 @@
-import { useGroupChatStore } from "@/store/chat-store";
+import { useChatStore } from '@/store/chat-store';
 
 interface GroupItemProps {
     uid: string[];
@@ -15,23 +15,17 @@ const GroupItem = ({
     lastMessage,
     roomid,
 }: GroupItemProps) => {
-    // Filtramos directamente en el componente
-    if (uid.length <= 2 || !displayName) {
-        return null; // No renderizar si no cumple las condiciones
-    }
+    const { setGroup, currentChat } = useChatStore();
 
-    const { groupChat, setGroup } = useGroupChatStore();
+    // Verificar si este grupo es el chat actual
+    const isActive = currentChat?.type === 'group' && currentChat.data.roomid === roomid;
 
     return (
         <article
             className={`flex items-center gap-x-3 py-2 px-4 border-b ${
-                groupChat ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-200 cursor-pointer"
+                isActive ? "bg-gray-200" : "hover:bg-gray-100 cursor-pointer"
             }`}
             onClick={() => {
-                if (groupChat) {
-                    alert("Debes salir del chat actual antes de seleccionar otro.");
-                    return;
-                }
                 setGroup({ uid, displayName, photoURL, lastMessage, roomid });
             }}
         >
