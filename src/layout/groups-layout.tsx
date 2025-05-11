@@ -2,9 +2,9 @@ import Groups from "@/components/chat/groups"
 import Messages from "@/components/chat/messages"
 import Navbar from "./navbar"
 import GroupProfile from "@/components/chat/group-profile"
-import { usePresence } from "@/lib/presence-service";
+import { usePresenceSystem } from "@/services/presence";
 const GroupLayout = () => {
-  usePresence(); // Inicializa el servicio de presencia
+  usePresenceSystem(); // Inicializa el sistema de presencia
   
   return (
     <div className="h-screen">

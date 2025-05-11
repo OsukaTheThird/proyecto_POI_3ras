@@ -1,4 +1,6 @@
+import { useFriendPresence } from '@/hooks/useFriendPresence';
 import { cn } from '@/lib/utils';
+import { Friend, useChatStore } from '@/store/chat-store';
 import React from 'react'
 interface MessageProps {
   message: string;
@@ -9,6 +11,12 @@ interface MessageProps {
 
 }
 const Message = ({ message, time, photoURL, isCurrentUser }: MessageProps) => {
+    const { currentChat, getChatData } = useChatStore();
+  const chatData = getChatData();
+
+  // Escuchar presencia del amigo (solo para chats individuales)
+  useFriendPresence(currentChat?.type === 'friend' ? (chatData as Friend)?.uid : undefined);
+
   return (
     <article className={cn('flex gap-x-2', { "flex-row-reverse": isCurrentUser, "flex-row": !isCurrentUser })}>
       <img src={photoURL} alt="" className='rounded-full size-10' />
