@@ -16,6 +16,13 @@ export interface Group {
   roomid: string;
 }
 
+interface UserStatus {
+  userId: string;
+  isOnline: boolean;
+  isTyping: boolean;
+  lastSeen?: string;
+}
+
 type ChatType = 'friend' | 'group';
 
 interface ChatStore {
@@ -23,6 +30,7 @@ interface ChatStore {
     type: ChatType;
     data: Friend | Group;
   } | null;
+  userStatuses: UserStatus[];
   setFriend: (friend: Friend) => void;
   setGroup: (group: Group) => void;
   resetChat: () => void;
@@ -30,6 +38,8 @@ interface ChatStore {
   isGroupChat: () => boolean;
   getChatData: () => Friend | Group | null;
   getRoomId: () => string | null;
+  setUserStatus: (status: UserStatus) => void;
+  setTypingStatus: (userId: string, isTyping: boolean) => void;
 }
 
 export const useChatStore = create<ChatStore>((set, get) => ({
@@ -64,7 +74,21 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   getRoomId: () => {
     const { currentChat } = get();
     return currentChat?.data.roomid || null;
-  }
+  },
+    userStatuses: [],
+
+  setUserStatus: (status) => set((state) => ({
+    userStatuses: [
+      ...state.userStatuses.filter(s => s.userId !== status.userId),
+      status
+    ]
+  })),
+  
+  setTypingStatus: (userId, isTyping) => set((state) => ({
+    userStatuses: state.userStatuses.map(s => 
+      s.userId === userId ? {...s, isTyping} : s
+    )
+  })),
 }));
 
-// Elimina useGroupChatStore ya que ahora está unificado
+

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { BsFillSendFill } from "react-icons/bs";
-import { arrayUnion, doc, Firestore, getDoc, updateDoc } from 'firebase/firestore';
+import { arrayUnion, doc, Firestore, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { useAuth, useFirestore } from 'reactfire';
 import { Friend, Group, useChatStore } from '@/store/chat-store';
 
@@ -19,6 +19,61 @@ const MessagesFooter: React.FC<MessagesFooterProps> = ({  }) => {
   const { getRoomId, getChatData, isGroupChat } = useChatStore();
   const roomId = getRoomId();
   const chatData = getChatData();
+
+  const { setTypingStatus } = useChatStore();
+
+  // Indicador de "escribiendo"
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMessage(e.target.value);
+    
+    // Activar indicador de "escribiendo"
+    if (!isTyping) {
+      setIsTyping(true);
+      updateTypingStatus(true);
+    }
+    
+    // Reiniciar el timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false);
+      updateTypingStatus(false);
+    }, 3000);
+  };
+
+  const updateTypingStatus = async (typing: boolean) => {
+    if (!currentUser) return;
+    
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      await updateDoc(userRef, {
+        'status.isTyping': typing,
+        'status.lastUpdated': serverTimestamp()
+      });
+      
+      // Actualizar el store local
+      setTypingStatus(currentUser.uid, typing);
+    } catch (error) {
+      console.error('Error updating typing status:', error);
+    }
+  };
+
+  // Limpiar al desmontar
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      if (isTyping) {
+        updateTypingStatus(false);
+      }
+    };
+  }, []);
 
   const handleSendMessage = async () => {
     if (!message || !currentUser || !roomId || !chatData) return;
@@ -86,7 +141,7 @@ const MessagesFooter: React.FC<MessagesFooterProps> = ({  }) => {
         placeholder={isGroupChat() ? "Escribe al grupo..." : "Escribe un mensaje..."}
         className="w-full p-2 border rounded-lg"
         value={message}
-        onChange={(e) => setMessage(e.target.value)}
+        onChange={handleInputChange}
         onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
       />
       <Button onClick={handleSendMessage}>

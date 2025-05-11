@@ -6,10 +6,10 @@ const Profile = () => {
 
   const auth = useAuth();
   const {data: user} = useUser();
-  const {resetFriend} = useChatStore();
+  const {resetChat} = useChatStore();
 
   const handleClickLogout = async () => {
-    resetFriend();
+    resetChat();
     await auth.signOut();
   }
   
