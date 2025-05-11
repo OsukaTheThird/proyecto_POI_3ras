@@ -22,6 +22,8 @@ const MessagesChat: React.FC<MessagesChatProps> = ({  }) => {
         uid: string;
         message: string;
         timestamp: number;
+        isLocation?: boolean;
+
     }
     const [messages, setMessages] = useState<MessageInterface[]>([]);
     const [membersData, setMembersData] = useState<Record<string, {photoURL: string, displayName: string}>>({});
