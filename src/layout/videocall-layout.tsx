@@ -5,7 +5,7 @@ import { Friend } from '@/store/chat-store';
 import { useChatStore } from "@/store/chat-store";
 import { useRef } from 'react';
 
-//Librerias las cuales mover despues
+//Librerias las cuales mover despues 
 import {
     getFirestore,
     collection,
@@ -18,28 +18,26 @@ import {
     DocumentReference,
     CollectionReference,
     DocumentData,
-} from "firebase/firestore"
+} from "firebase/firestore";
+import { initializeApp } from 'firebase/app';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBrZX70mKiEHqVoaA5mbR45S3316i0d52w",
-  authDomain: "aplicacion-chat-559ed.firebaseapp.com",
-  projectId: "aplicacion-chat-559ed",
-  storageBucket: "aplicacion-chat-559ed.firebasestorage.app",
-  messagingSenderId: "578679281148",
-  appId: "1:578679281148:web:fe199709b7527a63500e79"
+    apiKey: "AIzaSyBrZX70mKiEHqVoaA5mbR45S3316i0d52w",
+    authDomain: "aplicacion-chat-559ed.firebaseapp.com",
+    projectId: "aplicacion-chat-559ed",
+    storageBucket: "aplicacion-chat-559ed.firebasestorage.app",
+    messagingSenderId: "578679281148",
+    appId: "1:578679281148:web:fe199709b7527a63500e79"
 };
 
-// Inicializar Firebase
-const app = initializeApp(firebaseConfig);
-const firestore = getFirestore(app);
+// Inicializar Firebase const app = initializeApp(firebaseConfig); const firestore = getFirestore(app);
 
-interface FriendsCallProps {
-    chat: Friend;
-}
+interface FriendsCallProps { chat: Friend; }
 
 // Elementos HTML
 
 const VideocallLayout = () => {
+
 
     const db = useFirestore();
 
@@ -258,12 +256,12 @@ const VideocallLayout = () => {
             {/* <h2>3. Join a Call</h2> */}
             <p>Answer the call from a different browser window or device</p>
 
-            <input id="callInput" />
+            <input id="callInput" className='bg-slate-400' />
             {/* <button id="answerButton" disabled>Answer</button> */}
 
             {/* <h2>4. Hangup</h2> 
 
-            <button id="hangupButton" disabled>Hangup</button>*/}
+        <button id="hangupButton" disabled>Hangup</button>*/}
 
         </body>
     )
