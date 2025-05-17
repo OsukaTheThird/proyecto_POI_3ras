@@ -6,6 +6,7 @@ import List from "./list-layout"; // Importa tu componente de tareas
 import { useSigninCheck } from "reactfire";
 import { useLoadingStore } from "@/store/loading-store";
 import Store from "./store-layout";
+import VideocallLayout from "./videocall-layout";
 
 const RootLayout = () => {
     const { status, data: signInCheckResult} = useSigninCheck();
@@ -24,6 +25,7 @@ const RootLayout = () => {
                         <Route path="/tareas" element={<List />} />
                         <Route path="/grupos" element={<GroupLayout />} />
                         <Route path="/tienda" element={<Store />} />
+                        <Route path="/call" element={<VideocallLayout />} />
                     </Routes>
                 ) : (
                     <AuthLayout />

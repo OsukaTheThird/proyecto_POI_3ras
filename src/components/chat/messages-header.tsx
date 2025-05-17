@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { BsBoxArrowLeft, BsTelephone, BsPeopleFill } from "react-icons/bs";
 import { Group, useChatStore } from '@/store/chat-store';
 import { Friend } from '@/store/chat-store';
+import { Link } from 'react-router-dom';
 
 interface MessagesHeaderProps {
   chat: Friend | Group | null;
@@ -10,7 +11,7 @@ interface MessagesHeaderProps {
 }const MessagesHeader: React.FC<MessagesHeaderProps> = ({ }) => {
   const { resetChat, getChatData, isGroupChat, onlineStatus, typingStatus } = useChatStore();
   const chatData = getChatData();
-  
+
   if (!chatData) return null;
 
   // Obtener estado del chat
@@ -29,9 +30,9 @@ interface MessagesHeaderProps {
   return (
     <header className='p-4 border-b flex items-center'>
       <div className="relative">
-        <img 
-          src={chatData.photoURL || (isGroupChat() ? '/default-group-avatar.png' : '/default-user.png')} 
-          alt={chatData.displayName} 
+        <img
+          src={chatData.photoURL || (isGroupChat() ? '/default-group-avatar.png' : '/default-user.png')}
+          alt={chatData.displayName}
           className='rounded-md size-16'
         />
         {/* Indicador de estado (solo para chats individuales) */}
@@ -43,21 +44,24 @@ interface MessagesHeaderProps {
           `} />
         )}
       </div>
-      
+
       <div className='flex-1 p-2'>
         <p className='text-lg font-semibold text-gray-700'>{chatData.displayName}</p>
-        <p className={`text-xs flex items-center gap-1 ${
-          !isGroupChat() && typingStatus[(chatData as Friend).uid] ? 'text-blue-500' : 
-          !isGroupChat() && onlineStatus[(chatData as Friend).uid] ? 'text-green-500' : 'text-gray-500'
-        }`}>
+        <p className={`text-xs flex items-center gap-1 ${!isGroupChat() && typingStatus[(chatData as Friend).uid] ? 'text-blue-500' :
+            !isGroupChat() && onlineStatus[(chatData as Friend).uid] ? 'text-green-500' : 'text-gray-500'
+          }`}>
           {getStatusForChat()}
           {isGroupChat() && <BsPeopleFill className="text-gray-400" />}
         </p>
       </div>
       <div className='p-4'>
-        <Button>
-          <BsTelephone />
-        </Button>
+
+        <Link to="/call">
+          <Button id='callButton'>
+            <BsTelephone />
+          </Button>
+        </Link>
+
       </div>
 
       <div>
