@@ -8,7 +8,10 @@ import { Link } from 'react-router-dom';
 interface MessagesHeaderProps {
   chat: Friend | Group | null;
   isGroup: boolean;
-}const MessagesHeader: React.FC<MessagesHeaderProps> = ({ }) => {
+}
+
+
+const MessagesHeader: React.FC<MessagesHeaderProps> = ({ }) => {
   const { resetChat, getChatData, isGroupChat, onlineStatus, typingStatus } = useChatStore();
   const chatData = getChatData();
 
@@ -48,7 +51,7 @@ interface MessagesHeaderProps {
       <div className='flex-1 p-2'>
         <p className='text-lg font-semibold text-gray-700'>{chatData.displayName}</p>
         <p className={`text-xs flex items-center gap-1 ${!isGroupChat() && typingStatus[(chatData as Friend).uid] ? 'text-blue-500' :
-            !isGroupChat() && onlineStatus[(chatData as Friend).uid] ? 'text-green-500' : 'text-gray-500'
+          !isGroupChat() && onlineStatus[(chatData as Friend).uid] ? 'text-green-500' : 'text-gray-500'
           }`}>
           {getStatusForChat()}
           {isGroupChat() && <BsPeopleFill className="text-gray-400" />}
