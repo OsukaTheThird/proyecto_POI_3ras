@@ -1,13 +1,6 @@
 import { Link } from 'react-router-dom';
-import { useAuth } from 'reactfire';
 
 const Navbar  = () => {
-
-  const auth = useAuth();
-
-  const handleClickLogout = async () =>{
-    await auth.signOut();
-  }
 
   return (
 

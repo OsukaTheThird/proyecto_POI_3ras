@@ -15,20 +15,17 @@ import {
     onSnapshot,
     addDoc,
     updateDoc,
-    DocumentReference,
-    CollectionReference,
-    DocumentData,
 } from "firebase/firestore";
 import { initializeApp } from 'firebase/app';
 
-const firebaseConfig = {
+/* const firebaseConfig = {
     apiKey: "AIzaSyBrZX70mKiEHqVoaA5mbR45S3316i0d52w",
     authDomain: "aplicacion-chat-559ed.firebaseapp.com",
     projectId: "aplicacion-chat-559ed",
     storageBucket: "aplicacion-chat-559ed.firebasestorage.app",
     messagingSenderId: "578679281148",
     appId: "1:578679281148:web:fe199709b7527a63500e79"
-};
+}; */
 
 // Inicializar Firebase const app = initializeApp(firebaseConfig); const firestore = getFirestore(app);
 
@@ -69,7 +66,6 @@ const VideocallLayout = () => {
     const chatData = getChatData();
     if (!chatData) return null;
 
-    const auth = useAuth();
     const { data: user } = useUser();
 
     const turnOnWebcam = async () => {
@@ -114,7 +110,10 @@ const VideocallLayout = () => {
             const offerCandidatesRef = collection(callDocRef, 'offerCandidates');
             const answerCandidatesRef = collection(callDocRef, 'answerCandidates');
 
-            callInput.value = callDocRef.id;
+            /* callInputRef.value = callDocRef.id; */
+            if (callInputRef.current) {
+                callInputRef.current.value = callDocRef.id;
+            }
 
             // Escuchar ICE candidates del oferente
             pc.onicecandidate = (event) => {
@@ -154,7 +153,9 @@ const VideocallLayout = () => {
                 });
             });
 
-            hangupButtonRef.disabled = false; 
+            if (callButtonRef.current) {
+                callButtonRef.current.disabled = false;
+            }
         } catch (err) {
             console.error('Error creando la llamada:', err);
         }
@@ -162,7 +163,13 @@ const VideocallLayout = () => {
 
     const answerCall = async () => {
         try {
-            const callId = callInputRef.value;
+            /*const callId = callInputRef.value;
+            const callDocRef = doc(db, 'calls', callId); */
+            const callId = callInputRef.current?.value;
+            if (!callId) {
+                // manejar error o salir
+                return;
+            }
             const callDocRef = doc(db, 'calls', callId);
             const offerCandidatesRef = collection(callDocRef, 'offerCandidates');
             const answerCandidatesRef = collection(callDocRef, 'answerCandidates');

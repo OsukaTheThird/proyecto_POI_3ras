@@ -1,7 +1,6 @@
 import { useFriendPresence } from '@/hooks/useFriendPresence';
 import { cn } from '@/lib/utils';
 import { Friend, useChatStore } from '@/store/chat-store';
-import React from 'react'
 interface MessageProps {
   message: string;
   time: string;
