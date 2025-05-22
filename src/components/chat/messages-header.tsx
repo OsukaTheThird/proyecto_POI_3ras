@@ -59,11 +59,11 @@ const MessagesHeader: React.FC<MessagesHeaderProps> = ({ }) => {
       </div>
       <div className='p-4'>
 
-        {/* <Link to="/call">
+        <Link to="/call">
           <Button id='callButton'>
             <BsTelephone />
           </Button>
-        </Link> */}
+        </Link>
 
       </div>
 
