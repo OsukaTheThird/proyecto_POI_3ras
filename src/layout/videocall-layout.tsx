@@ -154,7 +154,7 @@ const VideocallLayout = () => {
                 });
             });
 
-            hangupButtonRef.disabled = false;
+            hangupButtonRef.disabled = false; 
         } catch (err) {
             console.error('Error creando la llamada:', err);
         }
@@ -162,7 +162,7 @@ const VideocallLayout = () => {
 
     const answerCall = async () => {
         try {
-            const callId = callInput.value;
+            const callId = callInputRef.value;
             const callDocRef = doc(db, 'calls', callId);
             const offerCandidatesRef = collection(callDocRef, 'offerCandidates');
             const answerCandidatesRef = collection(callDocRef, 'answerCandidates');
