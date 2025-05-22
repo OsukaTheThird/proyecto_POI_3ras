@@ -4,6 +4,7 @@ import { useAuth, useFirestore, useUser } from 'reactfire';
 import { Friend } from '@/store/chat-store';
 import { useChatStore } from "@/store/chat-store";
 import { useRef } from 'react';
+import { Link } from 'react-router-dom';
 
 //Librerias las cuales mover despues 
 import {
@@ -16,7 +17,6 @@ import {
     addDoc,
     updateDoc,
 } from "firebase/firestore";
-import { initializeApp } from 'firebase/app';
 
 /* const firebaseConfig = {
     apiKey: "AIzaSyBrZX70mKiEHqVoaA5mbR45S3316i0d52w",
@@ -223,52 +223,62 @@ const VideocallLayout = () => {
     }
 
     return (
-        <body className="h-screen">
-            <h2>1. Start your Webcam</h2>
-            <div id="videos">
+        <body className="text-center text-[#2c3e50] my-[80px] mx-[10px]">
+            <h1 className='font-semibold text-2xl'>¡Enciende tu webcam!</h1>
+            <br />
+            <div className="flex items-center justify-center" id="videos">
                 <span>
                     <h3 className="font-semibold">{user?.displayName || "No name"}</h3>
-                    <video ref={webcamVideoRef} autoPlay playsInline></video>
+                    <video className="w-[40vw] h-[30vw] m-8 bg-[#2c3e50]" ref={webcamVideoRef} autoPlay playsInline></video>
                     {/* <video id="webcamVideo" autoPlay playsInline></video> */}
                 </span>
                 <span>
                     <h3 className="font-semibold">{chatData?.displayName}</h3>
-                    <video ref={remoteVideoRef} autoPlay playsInline></video>
+                    <video className="w-[40vw] h-[30vw] m-8 bg-[#2c3e50]" ref={remoteVideoRef} autoPlay playsInline></video>
                     {/* <video id="remoteVideo" autoPlay playsInline></video> */}
                 </span>
 
 
             </div>
 
+            <div className='flex justify-evenly'>
+                <Button id="webcamButton" onClick={turnOnWebcam} className='bg-slate-400'>
+                    <MdCamera />
+                </Button>
+                <Button id='callButton' onClick={makeCall} className='bg-blue-300'>
+                    <MdCallMade />
+                </Button>
 
-            <Button id="webcamButton" onClick={turnOnWebcam}>
-                <MdCamera />
-            </Button>
-            <Button id='callButton' onClick={makeCall} className='bg-blue-300'>
-                <MdCallMade />
-            </Button>
+                <Button id="answerButton" onClick={answerCall} className="bg-green-400">
+                    <MdCall />
+                </Button>
 
-            <Button id="answerButton" onClick={answerCall} className="bg-green-400">
-                <MdCall />
-            </Button>
+                <Link to="/" >
+                    <Button id="hangupButton" onClick={hangupCall} className="bg-blue-950">
+                        <MdCallEnd />
+                    </Button>
+                </Link>
+            </div>
 
-            <Button id="hangupButton" onClick={hangupCall} className="bg-red-600">
-                <MdCallEnd />
-            </Button>
 
-            {/* <button id="webcamButton">Start webcam</button> */}
-            <h2>2. Create a new Call</h2>
-            {/* <button id="callButton" disabled>Create Call (offer)</button> */}
+            <div>
+                <br />
+                {/* <button id="webcamButton">Start webcam</button> */}
+                <h2>2. Create a new Call</h2>
+                {/* <button id="callButton" disabled>Create Call (offer)</button> */}
 
-            {/* <h2>3. Join a Call</h2> */}
-            <p>Answer the call from a different browser window or device</p>
+                {/* <h2>3. Join a Call</h2> */}
+                <p>Answer the call from a different browser window or device</p>
 
-            <input id="callInput" className='bg-slate-400' />
-            {/* <button id="answerButton" disabled>Answer</button> */}
+                <br />
+                <input id="callInput" className='bg-slate-400' />
+                {/* <button id="answerButton" disabled>Answer</button> */}
 
-            {/* <h2>4. Hangup</h2> 
+                {/* <h2>4. Hangup</h2> 
 
         <button id="hangupButton" disabled>Hangup</button>*/}
+
+            </div>
 
         </body>
     )

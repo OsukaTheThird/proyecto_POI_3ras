@@ -2,8 +2,6 @@
   import Messages from "@/components/chat/messages"
   import Profile from "@/components/chat/profile"
 import Navbar from "./navbar"
-import { useChatStore } from "@/store/chat-store"
-import { useConnectionTracker } from "@/hooks/useConnectionStatus"
 import { usePresenceSystem } from "@/services/presence"
 
 const ChatLayout = () => {
