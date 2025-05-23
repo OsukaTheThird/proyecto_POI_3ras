@@ -21,48 +21,60 @@ const Message = ({
   isLocation,
   senderName 
 }: MessageProps) => {
-  const { decryptMessage, isEncrypted: isChatEncrypted } = useChatStore();
+  const { decryptMessage } = useChatStore();
 
   const renderContent = () => {
+    // Mensaje de ubicación
     if (isLocation) {
       const url = isEncrypted ? decryptMessage(message) : message;
-      return <a href={url}>📍 Ver ubicación</a>;
+      return (
+        <a 
+          href={url} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="flex items-center gap-1 text-blue-600 hover:underline"
+        >
+          <FaMapMarkerAlt className="text-red-500" />
+          Ver ubicación
+        </a>
+      );
     }
 
+    // Mensaje encriptado
     if (isEncrypted) {
-      try {
-        // Solo desencriptar si el mensaje parece encriptado
-        if (!message.match(/^[A-Za-z0-9+/=]+$/)) {
-          return "🔒 [Formato inválido]";
+      if (isCurrentUser) {
+        // Mostrar mensaje encriptado crudo para el usuario que lo envió
+        return (
+          <div className="flex items-center gap-1">
+            <span>🔒</span>
+            <span className="font-mono text-sm">{message.substring(0, 10)}...</span>
+          </div>
+        );
+      } else {
+        // Intentar desencriptar mensajes de otros usuarios
+        try {
+          const decrypted = decryptMessage(message);
+          return decrypted || "🔒 [Contenido no disponible]";
+        } catch {
+          return "🔒 [Error al desencriptar]";
         }
-        const decrypted = decryptMessage(message);
-        return decrypted.startsWith("🔒") ? decrypted : `🔒 ${decrypted}`;
-      } catch {
-        return "🔒 [Error de desencriptación]";
       }
     }
+
+    // Mensaje normal
     return message;
   };
-  
 
   return (
     <div className={`flex gap-2 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
-      {!isCurrentUser && (
-        <img 
-          src={photoURL} 
-          alt={senderName || 'Usuario'} 
-          className="w-8 h-8 rounded-full mt-1" 
-        />
-      )}
-      
+      {/* ... resto del renderizado ... */}
       <div className={cn(
         'max-w-xs p-3 rounded-lg',
         {
-          'bg-blue-500 text-white': isCurrentUser && !isLocation,
-          'bg-gray-200': !isCurrentUser && !isLocation,
-          'bg-blue-100': isLocation && !isCurrentUser,
-          'bg-blue-300': isLocation && isCurrentUser,
-          'border border-gray-400': isEncrypted
+          'bg-blue-500 text-white': isCurrentUser && !isEncrypted,
+          'bg-gray-200': !isCurrentUser && !isEncrypted,
+          'bg-blue-100 border border-blue-300': isEncrypted && isCurrentUser,
+          'bg-gray-100 border border-gray-400': isEncrypted && !isCurrentUser
         }
       )}>
         {!isCurrentUser && senderName && (

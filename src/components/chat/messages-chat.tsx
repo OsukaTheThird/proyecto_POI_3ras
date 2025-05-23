@@ -58,12 +58,41 @@ const MessagesChat: React.FC<MessagesChatProps> = ({  }) => {
     return () => unsubscribe();
   }, [roomId, db, isChatEncrypted]);
 
-  useEffect(() => {
-    if (containerRef.current && !loading) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
-      console.log('[MessagesChat] Scroll realizado');
-    }
-  }, [messages, loading]);
+ useEffect(() => {
+  if (!roomId) return;
+
+  const roomRef = doc(db, 'rooms', roomId);
+  const unsubscribe = onSnapshot(roomRef, async (doc) => {
+    const messagesData = doc.data()?.messages || [];
+
+    // Procesamos y desencriptamos los mensajes
+    const processedMessages = await Promise.all(
+      messagesData.map(async (msg: any) => {
+        const isEncrypted = msg.hasOwnProperty('isEncrypted') ? msg.isEncrypted : isChatEncrypted;
+
+        // Si el mensaje es encriptado y NO lo envió el usuario actual, lo desencriptamos
+        if (isEncrypted && msg.uid !== currentUser?.uid) {
+          try {
+            msg.message = await decryptMessage(msg.message);
+          } catch (e) {
+            console.error("Error al desencriptar:", e);
+            msg.message = "🔒 Error al desencriptar";
+          }
+        }
+
+        return {
+          ...msg,
+          isEncrypted,
+        };
+      })
+    );
+
+    setMessages(processedMessages);
+    setLoading(false);
+  });
+
+  return () => unsubscribe();
+}, [roomId, db, isChatEncrypted, currentUser?.uid]);
 
   if (!roomId) {
     console.log('[MessagesChat] No hay roomId seleccionado');
@@ -77,14 +106,11 @@ const MessagesChat: React.FC<MessagesChatProps> = ({  }) => {
   console.log('[MessagesChat] Renderizando mensajes:', messages);
 
   return (
-    <main 
-      ref={containerRef} 
-      className="p-4 flex-1 bg-gray-50 space-y-4 overflow-y-auto"
-    >
-      {messages.map((message, index) => {
-        const isCurrentUser = message.uid === currentUser?.uid;
-        const chatData = getChatData();
-        const senderPhoto = isCurrentUser 
+  <main ref={containerRef} className="p-4 flex-1 bg-gray-50 space-y-4 overflow-y-auto">
+    {messages.map((message, index) => {
+      const isCurrentUser = message.uid === currentUser?.uid;
+      const chatData = getChatData();
+      const senderPhoto = isCurrentUser 
           ? currentUser?.photoURL 
           : isGroupChat() 
             ? (chatData as Group)?.photoURL 
@@ -96,21 +122,25 @@ const MessagesChat: React.FC<MessagesChatProps> = ({  }) => {
           isEncrypted: message.isEncrypted
         });
 
-        return (
-    <Message
-      key={`${message.uid}-${message.timestamp}-${index}`}
-      message={message.isEncrypted && isCurrentUser ? 
-               `🔒 ${message.message}` : // Mensaje encriptado crudo
-               message.message}          // Mensaje normal o desencriptado
-      time={format(message.timestamp)}
-      photoURL={senderPhoto || '/default-user.png'}
-      isCurrentUser={isCurrentUser}
-      isLocation={message.isLocation}
-      isEncrypted={message.isEncrypted}
-        senderName={
-          (isCurrentUser ? currentUser?.displayName : (chatData as Friend)?.displayName) ?? undefined
+        // Dummy synchronous decryption for demonstration; replace with real logic as needed
+        function decryptMessage(message: string): string {
+          // TODO: Replace with actual decryption logic
+          return `[decrypted] ${message}`;
         }
-    />
+
+return (
+        <Message
+          key={`${message.uid}-${message.timestamp}-${index}`}
+          message={message.message}
+          time={format(message.timestamp)}
+          photoURL={senderPhoto || '/default-user.png'}
+          isCurrentUser={isCurrentUser}
+          isLocation={message.isLocation}
+          isEncrypted={message.isEncrypted}  senderName={
+    (isCurrentUser ? currentUser?.displayName : (chatData as Friend)?.displayName) ?? undefined
+  }
+/>
+
   );
 })}
     </main>
@@ -118,3 +148,7 @@ const MessagesChat: React.FC<MessagesChatProps> = ({  }) => {
 };
 
 export default MessagesChat;
+
+function decryptMessage(message: any): any {
+  throw new Error('Function not implemented.');
+}

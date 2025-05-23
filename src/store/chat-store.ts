@@ -37,9 +37,10 @@ interface ChatStore {
   setOnlineStatus: (userId: string, isOnline: boolean) => void;
   setTypingStatus: (userId: string, isTyping: boolean) => void;
   // Nuevas funciones para encriptación
-  toggleEncryption: (password?: string) => Promise<void>;
-  encryptMessage: (message: string) => string;
-  decryptMessage: (encryptedMessage: string) => string;
+  setEncryptionKey: (password: string) => void;
+  encryptMessage: (message: string) => { encrypted: string; original: string };
+  decryptMessage: (encrypted: string) => string;
+  toggleEncryption: () => void;
 }
 
 export const useChatStore = create<ChatStore>((set, get) => ({
@@ -93,43 +94,54 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     typingStatus: { ...state.typingStatus, [userId]: isTyping }
   })),
   
-  // Funciones de encriptación
-  toggleEncryption: async (password) => {
-    const { isEncrypted, encryptionKey } = get();
+  setEncryptionKey: (password: string) => {
+    // Usamos PBKDF2 para derivación de clave más segura
+    const salt = CryptoJS.lib.WordArray.random(128/8);
+    const key = CryptoJS.PBKDF2(password, salt, {
+      keySize: 256/32,
+      iterations: 1000
+    }).toString();
+    set({ encryptionKey: key });
+  },
+
+  encryptMessage: (message) => {
+    const { isEncrypted } = get();
     
-    if (isEncrypted) {
-      // Desactivar encriptación
-      set({ isEncrypted: false, encryptionKey: null });
-    } else {
-      if (!password) return;
-      // Activar encriptación con nueva clave
-      const derivedKey = CryptoJS.SHA256(password).toString();
-      set({ isEncrypted: true, encryptionKey: derivedKey });
+    if (!isEncrypted) {
+      return { encrypted: message, original: message };
     }
+    
+    // Encriptación real solo para consola/datos
+    const encrypted = `ENC:${CryptoJS.AES.encrypt(message, 'clave-secreta').toString()}`;
+    console.log('Mensaje encriptado:', encrypted); // Log en consola
+    
+    return { encrypted, original: message }; // Devuelve original para UI
   },
-  
-   setEncryptionKey: (key: string) => {
-    const derivedKey = CryptoJS.SHA256(key).toString(); // Deriva siempre igual
-    set({ encryptionKey: derivedKey });
-  },
-
-  encryptMessage: (message: string) => {
-    const { encryptionKey } = get();
-    if (!encryptionKey) return message;
-    return CryptoJS.AES.encrypt(message, encryptionKey).toString(); // Texto en Base64
-  },
-
-  decryptMessage: (encrypted: string) => {
-    const { encryptionKey } = get();
-    if (!encryptionKey) return encrypted;
+decryptMessage: (encrypted) => {
+    if (!encrypted.startsWith('ENC:')) return encrypted;
     
     try {
-      const bytes = CryptoJS.AES.decrypt(encrypted, encryptionKey);
-      // Añade manejo explícito de formato
-      return bytes.toString(CryptoJS.enc.Utf8) || encrypted;
-    } catch (error) {
-      console.error("Decryption error:", error);
-      return "🔒 [Error al desencriptar]";
+      const decrypted = CryptoJS.AES.decrypt(
+        encrypted.slice(4), 
+        'clave-secreta'
+      ).toString(CryptoJS.enc.Utf8);
+      
+      console.log('Mensaje desencriptado:', decrypted); // Log en consola
+      return decrypted || encrypted;
+    } catch {
+      return encrypted;
     }
+  },
+  toggleEncryption: async () => {
+  const { isEncrypted } = get();
+  
+  if (isEncrypted) {
+    // Desactivar encriptación
+    set({ isEncrypted: false, encryptionKey: null });
+  } else {
+    // Activar encriptación con clave fija (o sin clave)
+    const fixedKey = "clave-secreta"; // O genera una clave aleatoria
+    set({ isEncrypted: true, encryptionKey: fixedKey });
   }
+},
 }));

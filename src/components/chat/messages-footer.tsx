@@ -48,48 +48,45 @@ const MessagesFooter: React.FC<MessagesFooterProps> = ({ }) => {
     };
   }, [currentUser, setTypingStatus]);
 
-  const handleSendMessage = async () => {
-    if (!message || !currentUser || !roomId || !chatData) return;
+ const handleSendMessage = async () => {
+  if (!message || !currentUser || !roomId || !chatData) return;
 
-    try {
-      // Encriptar el mensaje si está activa la encriptación
-      const messageToSend = isEncrypted ? encryptMessage(message) : message;
-      const lastMessageDisplay = isEncrypted ? "🔒 Mensaje encriptado" : message;
+  try {
+    // Encriptar el mensaje si está activa la encriptación (¡con await!)
+    const messageToSend = isEncrypted ? await encryptMessage(message) : message;
+    const lastMessageDisplay = isEncrypted ? "🔒 Mensaje encriptado" : message;
 
-      const messageData = {
-        message: messageToSend,
-        timestamp: new Date().toISOString(),
-        uid: currentUser.uid,
-        isEncrypted: isEncrypted // Añadimos este flag para identificar mensajes encriptados
-      };
+    const messageData = {
+      message: messageToSend,
+      timestamp: new Date().toISOString(),
+      uid: currentUser.uid,
+      isEncrypted: isEncrypted
+    };
 
-      // Actualizar la sala de chat
-      await updateDoc(doc(db, "rooms", roomId), {
-        messages: arrayUnion(messageData),
-        lastMessage: lastMessageDisplay,
-        lastMessageTime: new Date().toISOString()
-      });
+    await updateDoc(doc(db, "rooms", roomId), {
+      messages: arrayUnion(messageData),
+      lastMessage: lastMessageDisplay,
+      lastMessageTime: new Date().toISOString()
+    });
 
-      // Actualizar lastMessage para todos los miembros
-      if (isGroupChat()) {
-        const groupData = chatData as Group;
-        await Promise.all(
-          groupData.uid.map(async (userId) => {
-            await updateLastMessage(db, userId, roomId, lastMessageDisplay);
-          })
-        );
-      } else {
-        // Para chat individual
-        const friendData = chatData as Friend;
-        await updateLastMessage(db, currentUser.uid, roomId, lastMessageDisplay);
-        await updateLastMessage(db, friendData.uid, roomId, lastMessageDisplay);
-      }
-
-      setMessage("");
-    } catch (error) {
-      console.error("Error sending message:", error);
+    if (isGroupChat()) {
+      const groupData = chatData as Group;
+      await Promise.all(
+        groupData.uid.map(async (userId) => {
+          await updateLastMessage(db, userId, roomId, lastMessageDisplay);
+        })
+      );
+    } else {
+      const friendData = chatData as Friend;
+      await updateLastMessage(db, currentUser.uid, roomId, lastMessageDisplay);
+      await updateLastMessage(db, friendData.uid, roomId, lastMessageDisplay);
     }
-  };
+
+    setMessage("");
+  } catch (error) {
+    console.error("Error sending message:", error);
+  }
+};
 
   const updateLastMessage = async (db: Firestore, uid: string, roomid: string, message: string) => {
     const userRef = doc(db, "users", uid);
