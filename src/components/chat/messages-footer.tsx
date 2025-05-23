@@ -15,7 +15,7 @@ const MessagesFooter: React.FC<MessagesFooterProps> = ({ }) => {
   const [message, setMessage] = useState("");
   const { currentUser } = useAuth();
   const db = useFirestore();
-  const { getRoomId, getChatData, isGroupChat, setTypingStatus } = useChatStore();
+  const { getRoomId, getChatData, isGroupChat, setTypingStatus, isEncrypted, encryptMessage } = useChatStore();
   const roomId = getRoomId();
   const chatData = getChatData();
 
@@ -24,11 +24,9 @@ const MessagesFooter: React.FC<MessagesFooterProps> = ({ }) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMessage(e.target.value);
     
-    // Activar indicador de "escribiendo"
     if (currentUser) {
       setTypingStatus(currentUser.uid, true);
       
-      // Reiniciar el timeout
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
@@ -54,16 +52,21 @@ const MessagesFooter: React.FC<MessagesFooterProps> = ({ }) => {
     if (!message || !currentUser || !roomId || !chatData) return;
 
     try {
+      // Encriptar el mensaje si está activa la encriptación
+      const messageToSend = isEncrypted ? encryptMessage(message) : message;
+      const lastMessageDisplay = isEncrypted ? "🔒 Mensaje encriptado" : message;
+
       const messageData = {
-        message,
+        message: messageToSend,
         timestamp: new Date().toISOString(),
-        uid: currentUser.uid
+        uid: currentUser.uid,
+        isEncrypted: isEncrypted // Añadimos este flag para identificar mensajes encriptados
       };
 
       // Actualizar la sala de chat
       await updateDoc(doc(db, "rooms", roomId), {
         messages: arrayUnion(messageData),
-        lastMessage: message,
+        lastMessage: lastMessageDisplay,
         lastMessageTime: new Date().toISOString()
       });
 
@@ -72,14 +75,14 @@ const MessagesFooter: React.FC<MessagesFooterProps> = ({ }) => {
         const groupData = chatData as Group;
         await Promise.all(
           groupData.uid.map(async (userId) => {
-            await updateLastMessage(db, userId, roomId, message);
+            await updateLastMessage(db, userId, roomId, lastMessageDisplay);
           })
         );
       } else {
         // Para chat individual
         const friendData = chatData as Friend;
-        await updateLastMessage(db, currentUser.uid, roomId, message);
-        await updateLastMessage(db, friendData.uid, roomId, message);
+        await updateLastMessage(db, currentUser.uid, roomId, lastMessageDisplay);
+        await updateLastMessage(db, friendData.uid, roomId, lastMessageDisplay);
       }
 
       setMessage("");
@@ -107,44 +110,44 @@ const MessagesFooter: React.FC<MessagesFooterProps> = ({ }) => {
     });
     
     await updateDoc(userRef, { rooms: updatedRooms });
-  }; const handleSendLocation = async () => {
+  };
+
+  const handleSendLocation = async () => {
     if (!currentUser || !roomId || !chatData) return;
 
     try {
-      // Obtener la ubicación del usuario
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
           const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
-          const locationMessage = `${mapsUrl}`;
+          const locationMessage = isEncrypted ? encryptMessage(mapsUrl) : mapsUrl;
+          const lastMessageDisplay = "📍 Ubicación compartida";
 
-          // Crear objeto de mensaje con la ubicación
           const messageData = {
             message: locationMessage,
             timestamp: new Date().toISOString(),
             uid: currentUser.uid,
-            isLocation: true // Campo adicional para identificar mensajes de ubicación
+            isLocation: true,
+            isEncrypted: isEncrypted
           };
 
-          // Actualizar la sala de chat
           await updateDoc(doc(db, "rooms", roomId), {
             messages: arrayUnion(messageData),
-            lastMessage: "📍 Ubicación compartida",
+            lastMessage: lastMessageDisplay,
             lastMessageTime: new Date().toISOString()
           });
 
-          // Actualizar lastMessage para todos los miembros (igual que antes)
           if (isGroupChat()) {
             const groupData = chatData as Group;
             await Promise.all(
               groupData.uid.map(async (userId) => {
-                await updateLastMessage(db, userId, roomId, "📍 Ubicación compartida");
+                await updateLastMessage(db, userId, roomId, lastMessageDisplay);
               })
             );
           } else {
             const friendData = chatData as Friend;
-            await updateLastMessage(db, currentUser.uid, roomId, "📍 Ubicación compartida");
-            await updateLastMessage(db, friendData.uid, roomId, "📍 Ubicación compartida");
+            await updateLastMessage(db, currentUser.uid, roomId, lastMessageDisplay);
+            await updateLastMessage(db, friendData.uid, roomId, lastMessageDisplay);
           }
         },
         (error) => {
@@ -183,7 +186,6 @@ const MessagesFooter: React.FC<MessagesFooterProps> = ({ }) => {
       </Button>
     </footer>
   );
-
 };
 
 export default MessagesFooter;

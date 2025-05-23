@@ -14,7 +14,7 @@ const ChatLayout = () => {
       </div>
         <div className="grid grid-cols-[2fr_5fr_2fr] h-screen flex-grow">
         <Friends />
-        <Messages message={""} time={""} photoURL={""} isCurrentUser={false} isLocation={false} />
+        <Messages />
         <Profile />
       </div>
     </div>
