@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import Message from './message';
-import { doc, onSnapshot, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { useAuth, useFirestore } from 'reactfire';
 import { format } from 'timeago.js';
-import { useChatStore } from '@/store/chat-store';
-import { Friend, Group } from '@/store/chat-store';
+import { Friend, Group, useChatStore } from '@/store/chat-store';
 
 interface MessagesChatProps {
   chat: Friend | Group | null;
@@ -15,108 +14,105 @@ interface MessageInterface {
   uid: string;
   message: string;
   timestamp: number;
-  isLocation?: boolean;
-  isEncrypted?: boolean;
+  isLocation: false;
+  isEncrypted: false;
 }
 
-const MessagesChat: React.FC<MessagesChatProps> = ({}) => {
+const MessagesChat: React.FC<MessagesChatProps> = ({  }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const db = useFirestore();
   const { currentUser } = useAuth();
-  const { getChatData, getRoomId, isGroupChat, isEncrypted: isChatEncrypted } = useChatStore();
-  
-  const [messages, setMessages] = useState<MessageInterface[]>([]);
-  const [membersData, setMembersData] = useState<Record<string, {photoURL: string, displayName: string}>>({});
+  const { getRoomId, isGroupChat, getChatData, isEncrypted: isChatEncrypted } = useChatStore();
   const roomId = getRoomId();
 
-  // Cargar mensajes
+  const [messages, setMessages] = useState<MessageInterface[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Debug: Mostrar estado de encriptación
+  console.log(`[MessagesChat] Chat encriptado: ${isChatEncrypted}, RoomID: ${roomId}`);
+
   useEffect(() => {
     if (!roomId) return;
 
     const roomRef = doc(db, 'rooms', roomId);
-    const unSubscribe = onSnapshot(roomRef, (document) => {
-      const messagesData = document.data()?.messages ?? [];
-      // Si el chat está encriptado, marcamos todos los mensajes nuevos como encriptados
-      const processedMessages = messagesData.map((msg: any) => ({
-        ...msg,
-        isEncrypted: isChatEncrypted ? true : msg.isEncrypted
-      }));
+    const unsubscribe = onSnapshot(roomRef, (doc) => {
+      const messagesData = doc.data()?.messages || [];
+      console.log('[MessagesChat] Mensajes recibidos:', messagesData);
+
+      const processedMessages = messagesData.map((msg: any) => {
+        // Debug: Ver mensaje antes de procesar
+        console.log(`[MessagesChat] Procesando mensaje:`, msg);
+        
+        return {
+          ...msg,
+          // Mantener el flag de encriptación si ya existe, o usar el estado actual del chat
+          isEncrypted: msg.hasOwnProperty('isEncrypted') ? msg.isEncrypted : isChatEncrypted
+        };
+      });
+
+      console.log('[MessagesChat] Mensajes procesados:', processedMessages);
       setMessages(processedMessages);
+      setLoading(false);
     });
-    return () => unSubscribe();
+
+    return () => unsubscribe();
   }, [roomId, db, isChatEncrypted]);
 
-  // Cargar datos de miembros (para grupos)
   useEffect(() => {
-    if (!isGroupChat() || !roomId) return;
-
-    const fetchMembersData = async () => {
-      const roomDoc = await getDoc(doc(db, 'rooms', roomId));
-      if (!roomDoc.exists()) return;
-
-      const members = roomDoc.data().users || [];
-      const membersSnapshot = await Promise.all(
-        members.map((memberId: string) => getDoc(doc(db, 'users', memberId)))
-      );
-      
-      const data: Record<string, {photoURL: string, displayName: string}> = {};
-      membersSnapshot.forEach((doc) => {
-        if (doc.exists()) {
-          data[doc.id] = {
-            photoURL: doc.data().photoURL || '',
-            displayName: doc.data().displayName || 'Usuario'
-          };
-        }
-      });
-      setMembersData(data);
-    };
-
-    fetchMembersData();
-  }, [roomId, isGroupChat, db]);
-
-  // Auto-scroll al recibir nuevos mensajes
-  useEffect(() => {
-    if (containerRef.current) {
+    if (containerRef.current && !loading) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      console.log('[MessagesChat] Scroll realizado');
     }
-  }, [messages]);
+  }, [messages, loading]);
 
-  if (!roomId) return null;
+  if (!roomId) {
+    console.log('[MessagesChat] No hay roomId seleccionado');
+    return null;
+  }
+
+  if (loading) {
+    return <div className="p-4 text-center">Cargando mensajes...</div>;
+  }
+
+  console.log('[MessagesChat] Renderizando mensajes:', messages);
 
   return (
     <main 
       ref={containerRef} 
-      className='p-4 flex-1 bg-gray-50 space-y-2 overflow-y-auto custom-scrollbar'
+      className="p-4 flex-1 bg-gray-50 space-y-4 overflow-y-auto"
     >
       {messages.map((message, index) => {
         const isCurrentUser = message.uid === currentUser?.uid;
-        let photoURL = '';
-        let senderName = '';
+        const chatData = getChatData();
+        const senderPhoto = isCurrentUser 
+          ? currentUser?.photoURL 
+          : isGroupChat() 
+            ? (chatData as Group)?.photoURL 
+            : (chatData as Friend)?.photoURL;
 
-        if (isCurrentUser) {
-          photoURL = currentUser?.photoURL || '';
-        } else if (isGroupChat()) {
-          photoURL = membersData[message.uid]?.photoURL || '/default-user.png';
-          senderName = membersData[message.uid]?.displayName || 'Usuario';
-        } else {
-          const chatData = getChatData() as Friend;
-          photoURL = chatData?.photoURL || '/default-user.png';
-          senderName = chatData?.displayName || 'Contacto';
-        }
+        console.log(`[MessagesChat] Renderizando mensaje ${index}:`, {
+          ...message,
+          isCurrentUser,
+          isEncrypted: message.isEncrypted
+        });
 
         return (
-          <Message 
-            key={`${message.uid}-${index}-${message.timestamp}`}
-            message={message.message}
-            time={format(message.timestamp)}
-            photoURL={photoURL}
-            isCurrentUser={isCurrentUser}
-            isLocation={!!message.isLocation}
-            isEncrypted={!!message.isEncrypted}
-            senderName={!isCurrentUser ? senderName : undefined}
-          />
-        );
-      })}
+    <Message
+      key={`${message.uid}-${message.timestamp}-${index}`}
+      message={message.isEncrypted && isCurrentUser ? 
+               `🔒 ${message.message}` : // Mensaje encriptado crudo
+               message.message}          // Mensaje normal o desencriptado
+      time={format(message.timestamp)}
+      photoURL={senderPhoto || '/default-user.png'}
+      isCurrentUser={isCurrentUser}
+      isLocation={message.isLocation}
+      isEncrypted={message.isEncrypted}
+        senderName={
+          (isCurrentUser ? currentUser?.displayName : (chatData as Friend)?.displayName) ?? undefined
+        }
+    />
+  );
+})}
     </main>
   );
 };

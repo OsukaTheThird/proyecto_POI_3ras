@@ -108,22 +108,28 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }
   },
   
-  encryptMessage: (message) => {
+   setEncryptionKey: (key: string) => {
+    const derivedKey = CryptoJS.SHA256(key).toString(); // Deriva siempre igual
+    set({ encryptionKey: derivedKey });
+  },
+
+  encryptMessage: (message: string) => {
     const { encryptionKey } = get();
     if (!encryptionKey) return message;
-    return CryptoJS.AES.encrypt(message, encryptionKey).toString();
+    return CryptoJS.AES.encrypt(message, encryptionKey).toString(); // Texto en Base64
   },
-  
-  decryptMessage: (encryptedMessage) => {
+
+  decryptMessage: (encrypted: string) => {
     const { encryptionKey } = get();
-    if (!encryptionKey) return encryptedMessage;
+    if (!encryptionKey) return encrypted;
     
     try {
-      const bytes = CryptoJS.AES.decrypt(encryptedMessage, encryptionKey);
-      const decrypted = bytes.toString(CryptoJS.enc.Utf8);
-      return decrypted || encryptedMessage; // Si falla, devuelve el original
-    } catch {
-      return encryptedMessage;
+      const bytes = CryptoJS.AES.decrypt(encrypted, encryptionKey);
+      // Añade manejo explícito de formato
+      return bytes.toString(CryptoJS.enc.Utf8) || encrypted;
+    } catch (error) {
+      console.error("Decryption error:", error);
+      return "🔒 [Error al desencriptar]";
     }
-  },
+  }
 }));

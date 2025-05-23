@@ -1,110 +1,95 @@
-import { useFriendPresence } from '@/hooks/useFriendPresence';
 import { cn } from '@/lib/utils';
-import { Friend, useChatStore } from '@/store/chat-store';
-import React from 'react';
+import { useChatStore } from '@/store/chat-store';
+import { FaMapMarkerAlt } from 'react-icons/fa';
 
-interface MessageProps {
+type MessageProps = {
   message: string;
   time: string;
   photoURL: string;
   isCurrentUser: boolean;
+  isLocation: boolean;
+  isEncrypted: boolean;
   senderName?: string;
-  isEncrypted?: boolean; // Nuevo prop para identificar mensajes encriptados
-  isLocation?: boolean; // Para manejar mensajes de ubicación
-}
+};
 
 const Message = ({ 
   message, 
   time, 
   photoURL, 
   isCurrentUser, 
-  senderName,
-  isEncrypted = false,
-  isLocation = false 
+  isEncrypted,
+  isLocation,
+  senderName 
 }: MessageProps) => {
-  const { currentChat, getChatData, isEncrypted: isChatEncrypted, decryptMessage } = useChatStore();
-  const chatData = getChatData();
+  const { decryptMessage, isEncrypted: isChatEncrypted } = useChatStore();
 
-  useFriendPresence(currentChat?.type === 'friend' ? (chatData as Friend)?.uid : undefined);
-
-  const displayMessage = () => {
-    // Si el mensaje es una ubicación
+  const renderContent = () => {
     if (isLocation) {
-      try {
-        const url = isEncrypted ? decryptMessage(message) : message;
-        return (
-          <a 
-            href={url} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
-          >
-            📍 Ver ubicación
-          </a>
-        );
-      } catch {
-        return "📍 [Ubicación encriptada]";
-      }
+      const url = isEncrypted ? decryptMessage(message) : message;
+      return <a href={url}>📍 Ver ubicación</a>;
     }
 
-    // Si el mensaje está encriptado
     if (isEncrypted) {
       try {
-        // Solo el usuario actual puede desencriptar sus propios mensajes
-        // Los mensajes de otros usuarios requieren que el chat esté en modo desencriptado
-        if (isCurrentUser || !isChatEncrypted) {
-          return decryptMessage(message);
+        // Solo desencriptar si el mensaje parece encriptado
+        if (!message.match(/^[A-Za-z0-9+/=]+$/)) {
+          return "🔒 [Formato inválido]";
         }
-        return "🔒 [Mensaje encriptado]";
+        const decrypted = decryptMessage(message);
+        return decrypted.startsWith("🔒") ? decrypted : `🔒 ${decrypted}`;
       } catch {
-        return "🔒 [Error al desencriptar]";
+        return "🔒 [Error de desencriptación]";
       }
     }
-
-    // Mensaje normal
     return message;
   };
+  
 
   return (
-    <article className={cn('flex gap-x-2', { 
-      "flex-row-reverse": isCurrentUser, 
-      "flex-row": !isCurrentUser 
-    })}>
+    <div className={`flex gap-2 ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
       {!isCurrentUser && (
-        <img src={photoURL} alt={senderName || 'Usuario'} className='rounded-full size-10' />
+        <img 
+          src={photoURL} 
+          alt={senderName || 'Usuario'} 
+          className="w-8 h-8 rounded-full mt-1" 
+        />
       )}
       
-      <div className={cn('p-2 rounded-md max-w-[70%]', { 
-        "bg-white": isCurrentUser,
-        "bg-gray-100": !isCurrentUser,
-        "border border-gray-300": isEncrypted,
-        "bg-blue-50": isLocation
-      })}>
+      <div className={cn(
+        'max-w-xs p-3 rounded-lg',
+        {
+          'bg-blue-500 text-white': isCurrentUser && !isLocation,
+          'bg-gray-200': !isCurrentUser && !isLocation,
+          'bg-blue-100': isLocation && !isCurrentUser,
+          'bg-blue-300': isLocation && isCurrentUser,
+          'border border-gray-400': isEncrypted
+        }
+      )}>
         {!isCurrentUser && senderName && (
           <p className="font-semibold text-sm mb-1">{senderName}</p>
         )}
         
-        <p className={cn({
-          "text-green-800": !isCurrentUser && !isEncrypted,
-          "text-gray-800": isCurrentUser && !isEncrypted,
-          "text-gray-500": isEncrypted
+        <div className={cn({
+          'text-gray-800': !isCurrentUser,
+          'text-blue-100': isCurrentUser && !isLocation
         })}>
-          {displayMessage()}
+          {renderContent()}
+        </div>
+        
+        <p className={cn('text-xs mt-1', {
+          'text-blue-100': isCurrentUser,
+          'text-gray-500': !isCurrentUser
+        })}>
+          {time}
         </p>
         
-        <p className='text-xs text-gray-500 text-right mt-1'>{time}</p>
-        
         {(isEncrypted || isLocation) && (
-          <p className="text-xs text-gray-400 mt-1 text-right">
+          <p className="text-xs mt-1 text-right">
             {isLocation ? '📍 Ubicación' : '🔒 Encriptado'}
           </p>
         )}
       </div>
-      
-      {isCurrentUser && (
-        <img src={photoURL} alt="Tú" className='rounded-full size-10' />
-      )}
-    </article>
+    </div>
   );
 };
 
