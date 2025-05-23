@@ -18,14 +18,6 @@ import {
     updateDoc,
 } from "firebase/firestore";
 
-/* const firebaseConfig = {
-    apiKey: "AIzaSyBrZX70mKiEHqVoaA5mbR45S3316i0d52w",
-    authDomain: "aplicacion-chat-559ed.firebaseapp.com",
-    projectId: "aplicacion-chat-559ed",
-    storageBucket: "aplicacion-chat-559ed.firebasestorage.app",
-    messagingSenderId: "578679281148",
-    appId: "1:578679281148:web:fe199709b7527a63500e79"
-}; */
 
 // Inicializar Firebase const app = initializeApp(firebaseConfig); const firestore = getFirestore(app);
 
@@ -110,11 +102,6 @@ const VideocallLayout = () => {
             const offerCandidatesRef = collection(callDocRef, 'offerCandidates');
             const answerCandidatesRef = collection(callDocRef, 'answerCandidates');
 
-            /* callInputRef.value = callDocRef.id; */
-            if (callInputRef.current) {
-                callInputRef.current.value = callDocRef.id;
-            }
-
             // Escuchar ICE candidates del oferente
             pc.onicecandidate = (event) => {
                 if (event.candidate) {
@@ -132,6 +119,8 @@ const VideocallLayout = () => {
                     sdp: offerDescription.sdp,
                     type: offerDescription.type,
                 },
+                callerId: user?.uid,
+                calleeId: chatData?.uid,
             });
 
             // Escuchar respuesta del callee
@@ -153,18 +142,15 @@ const VideocallLayout = () => {
                 });
             });
 
-            if (callButtonRef.current) {
-                callButtonRef.current.disabled = false;
-            }
+            // Habilitar botones
+            if (callButtonRef.current) callButtonRef.current.disabled = false;
         } catch (err) {
             console.error('Error creando la llamada:', err);
         }
-    }
+    };
 
     const answerCall = async () => {
         try {
-            /*const callId = callInputRef.value;
-            const callDocRef = doc(db, 'calls', callId); */
             const callId = callInputRef.current?.value;
             if (!callId) {
                 // manejar error o salir
@@ -212,7 +198,10 @@ const VideocallLayout = () => {
         } catch (err) {
             console.error('Error al responder la llamada:', err);
         }
-    }
+    };
+
+
+
 
     const hangupCall = () => {
         pc.close();
@@ -230,15 +219,11 @@ const VideocallLayout = () => {
                 <span>
                     <h3 className="font-semibold">{user?.displayName || "No name"}</h3>
                     <video className="w-[40vw] h-[30vw] m-8 bg-[#2c3e50]" ref={webcamVideoRef} autoPlay playsInline></video>
-                    {/* <video id="webcamVideo" autoPlay playsInline></video> */}
                 </span>
                 <span>
                     <h3 className="font-semibold">{chatData?.displayName}</h3>
                     <video className="w-[40vw] h-[30vw] m-8 bg-[#2c3e50]" ref={remoteVideoRef} autoPlay playsInline></video>
-                    {/* <video id="remoteVideo" autoPlay playsInline></video> */}
                 </span>
-
-
             </div>
 
             <div className='flex justify-evenly'>
@@ -259,29 +244,8 @@ const VideocallLayout = () => {
                     </Button>
                 </Link>
             </div>
-
-
-            <div>
-                <br />
-                {/* <button id="webcamButton">Start webcam</button> */}
-                <h2>2. Create a new Call</h2>
-                {/* <button id="callButton" disabled>Create Call (offer)</button> */}
-
-                {/* <h2>3. Join a Call</h2> */}
-                <p>Answer the call from a different browser window or device</p>
-
-                <br />
-                <input id="callInput" className='bg-slate-400' />
-                {/* <button id="answerButton" disabled>Answer</button> */}
-
-                {/* <h2>4. Hangup</h2> 
-
-        <button id="hangupButton" disabled>Hangup</button>*/}
-
-            </div>
-
         </body>
-    )
+    );
 }
 
 export default VideocallLayout
