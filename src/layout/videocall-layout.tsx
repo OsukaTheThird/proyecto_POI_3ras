@@ -72,11 +72,13 @@ const VideocallLayout = () => {
 
             // Recoger tracks remotos
             pc.ontrack = (event) => {
-                event.streams[0].getTracks().forEach((track) => {
-                    remoteStream!.addTrack(track);
-                });
+                if (event.track.kind === 'video') {
+                    remoteStream.addTrack(event.track);
+                    if (remoteVideoRef.current) {
+                        remoteVideoRef.current.srcObject = remoteStream;
+                    }
+                }
             };
-
             // Asignar streams a los videos
             if (webcamVideoRef.current) {
                 webcamVideoRef.current.srcObject = localStream;
@@ -109,10 +111,16 @@ const VideocallLayout = () => {
                 }
             };
 
-            // Crear oferta
             const offerDescription = await pc.createOffer();
             await pc.setLocalDescription(offerDescription);
 
+            // Modificar la SDP para usar H264
+            let sdp = offerDescription.sdp;
+            sdp = sdp.replace('VP8', 'H264');
+            await pc.setLocalDescription(new RTCSessionDescription({ type: 'offer', sdp }));
+
+
+            console.log('Creando oferta...');
             // Guardar oferta en Firestore
             await setDoc(callDocRef, {
                 offer: {
@@ -122,7 +130,8 @@ const VideocallLayout = () => {
                 callerId: user?.uid,
                 calleeId: chatData?.uid,
             });
-
+            console.log('Oferta enviada:', offerDescription);
+            
             // Escuchar respuesta del callee
             onSnapshot(callDocRef, (snapshot) => {
                 const data = snapshot.data() as { answer?: RTCSessionDescriptionInit };
