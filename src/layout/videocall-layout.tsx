@@ -70,13 +70,14 @@ const VideocallLayout = () => {
                 pc.addTrack(track, localStream!);
             });
 
-            // Recoger tracks remotos
             pc.ontrack = (event) => {
-                if (event.track.kind === 'video') {
-                    remoteStream.addTrack(event.track);
-                    if (remoteVideoRef.current) {
-                        remoteVideoRef.current.srcObject = remoteStream;
-                    }
+                console.log("Track recibido:", event.track.kind);
+                event.streams[0].getTracks().forEach((track) => {
+                    remoteStream?.addTrack(track);
+                });
+
+                if (remoteVideoRef.current) {
+                    remoteVideoRef.current!.srcObject = remoteStream;
                 }
             };
             // Asignar streams a los videos
@@ -131,7 +132,7 @@ const VideocallLayout = () => {
                 calleeId: chatData?.uid,
             });
             console.log('Oferta enviada:', offerDescription);
-            
+
             // Escuchar respuesta del callee
             onSnapshot(callDocRef, (snapshot) => {
                 const data = snapshot.data() as { answer?: RTCSessionDescriptionInit };
