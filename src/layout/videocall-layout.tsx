@@ -195,10 +195,20 @@ const VideoCall: React.FC = () => {
     };
 
     return (
-        <div>
-            <h2>WebRTC Video Call</h2>
+        <body className="text-center text-[#2c3e50] my-[80px] mx-[10px]">
+            <h2 className='font-semibold text-2xl'>¡Enciende la WebCam!</h2>
 
-            <div>
+            <div style={{ marginTop: '1rem' }}>
+                {status !== 'idle' && <p><strong>Estado:</strong> {status}</p>}
+                {error && <p style={{ color: 'red' }}>⚠️ {error}</p>}
+            </div>
+
+            <div className="flex items-center justify-center">
+                <video className="w-[40vw] h-[30vw] m-8" ref={webcamVideoRef} autoPlay playsInline muted width="300" />
+                <video className="w-[40vw] h-[30vw] m-8" ref={remoteVideoRef} autoPlay playsInline width="300" />
+            </div>
+
+            <div className='flex justify-evenly'>
                 <button onClick={setupMedia}>🎥 Habilitar cámara</button>
                 <button onClick={createCall} disabled={!localStream}>📞 Crear llamada</button>
                 <button onClick={answerCall} disabled={!localStream}>📲 Responder</button>
@@ -212,17 +222,7 @@ const VideoCall: React.FC = () => {
                 onChange={(e) => setCallId(e.target.value)}
                 style={{ marginTop: '1rem', width: '100%' }}
             />
-
-            <div style={{ marginTop: '1rem' }}>
-                {status !== 'idle' && <p><strong>Estado:</strong> {status}</p>}
-                {error && <p style={{ color: 'red' }}>⚠️ {error}</p>}
-            </div>
-
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <video ref={webcamVideoRef} autoPlay playsInline muted width="300" />
-                <video ref={remoteVideoRef} autoPlay playsInline width="300" />
-            </div>
-        </div>
+        </body>
     );
 };
 
