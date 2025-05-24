@@ -22,15 +22,15 @@ const Groups = () => {
         if (status === "loading" || !user) return;
 
         const unsubscribe = onSnapshot(
-            query(collection(db, "rooms"), 
-            where("users", "array-contains", user.uid)), 
+            query(collection(db, "rooms"),
+                where("users", "array-contains", user.uid)),
             async (snapshot) => {
                 const groupPromises = snapshot.docs.map(async (roomDoc) => {
                     const roomData = roomDoc.data() as RoomDB;
-                    
+
                     // Solo procesar grupos con más de 2 usuarios
                     if (roomData.users.length <= 2) return null;
-                    
+
                     // Obtener información de los miembros del grupo
                     const membersInfo = await Promise.all(
                         roomData.users.map(async (userId) => {
