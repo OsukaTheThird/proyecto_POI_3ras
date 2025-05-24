@@ -207,6 +207,8 @@ const VideoCall: React.FC = () => {
         <body className="text-center text-[#2c3e50] my-[80px] mx-[10px]">
             <h2 className='font-semibold text-2xl'>¡Enciende la WebCam!</h2>
 
+            <br />
+
             <div style={{ marginTop: '1rem' }}>
                 {status !== 'idle' && <p><strong>Estado:</strong> {status}</p>}
                 {error && <p style={{ color: 'red' }}>⚠️ {error}</p>}
@@ -214,19 +216,37 @@ const VideoCall: React.FC = () => {
 
             <div className="flex items-center justify-center">
 
-                <h2 className="font-semibold">{user?.displayName || "No name"}</h2>
-                <video className="w-[40vw] h-[30vw] m-8" ref={webcamVideoRef} autoPlay playsInline muted width="300" />
+                <span>
+                    <h2 className="font-semibold">{user?.displayName || "No name"}</h2>
+                    <video className="w-[40vw] h-[30vw] m-8" ref={webcamVideoRef} autoPlay playsInline muted width="300" />
+                </span>
 
-                <h2 className="font-semibold">{chatData?.displayName}</h2>
-                <video className="w-[40vw] h-[30vw] m-8" ref={remoteVideoRef} autoPlay playsInline width="300" />
+                <span>
+                    <h2 className="font-semibold">{chatData?.displayName}</h2>
+                    <video className="w-[40vw] h-[30vw] m-8" ref={remoteVideoRef} autoPlay playsInline width="300" />
+                </span>
+
             </div>
 
             <div className='flex justify-evenly'>
-                <button onClick={setupMedia}>🎥 Habilitar cámara</button>
-                <button onClick={createCall} disabled={!localStream}>📞 Crear llamada</button>
-                <button onClick={answerCall} disabled={!localStream}>📲 Responder</button>
-                <button onClick={hangUp} disabled={!callActive}>❌ Finalizar</button>
+                <button className="bg-slate-400 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded" onClick={setupMedia}>
+                    🎥
+                </button>
+
+                <button className="bg-blue-300 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded" onClick={createCall} disabled={!localStream}>
+                    📞
+                </button>
+
+                <button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" onClick={answerCall} disabled={!localStream}>
+                    📲
+                </button>
+
+                <button className="bg-slate-700 hover:bg-slate-950 text-white font-bold py-2 px-4 rounded" onClick={hangUp} disabled={!callActive}>
+                    ❌
+                </button>
             </div>
+
+            <br />
 
             <input
                 ref={callInputRef}
