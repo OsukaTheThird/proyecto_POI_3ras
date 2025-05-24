@@ -44,7 +44,7 @@ export default function StoreLayout() {
   const [points, setPoints] = useState(0);
   const [ownedBorders, setOwnedBorders] = useState<number[]>([]);
   const [selectedBorder, setSelectedBorder] = useState<string | null>(null);
-  const [activeProduct, setActiveProduct] = useState<Product | null>(null);
+  /* const [activeProduct, setActiveProduct] = useState<Product | null>(null); */
   const [paypalReady, setPaypalReady] = useState(false);
 
   useEffect(() => {
@@ -159,7 +159,7 @@ export default function StoreLayout() {
                           {paypalReady && (
                             <PayPalButtons
   style={{ layout: "horizontal" }}
-  createOrder={(data, actions) => {
+  createOrder={(_data, actions) => {
     return actions.order.create({
       purchase_units: [
         {
@@ -194,7 +194,7 @@ export default function StoreLayout() {
       intent: "CAPTURE"
     });
   }}
-  onApprove={async (data, actions) => {
+  onApprove={async (_data, actions) => {
     try {
       const details = await actions.order?.capture();
       console.log("Detalles de la transacción:", details);
