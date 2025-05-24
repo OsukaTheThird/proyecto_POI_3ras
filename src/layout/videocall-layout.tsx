@@ -15,7 +15,7 @@ import {
 } from 'firebase/firestore';
 import { useUser } from 'reactfire';
 import { useChatStore } from '@/store/chat-store';
-
+import { MdCall, MdCallEnd, MdCallMade, MdCamera } from "react-icons/md";
 // --- Firebase Init ---
 const firebaseConfig = {
     apiKey: "AIzaSyBrZX70mKiEHqVoaA5mbR45S3316i0d52w",
@@ -230,19 +230,23 @@ const VideoCall: React.FC = () => {
 
             <div className='flex justify-evenly'>
                 <button className="bg-slate-400 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded" onClick={setupMedia}>
-                    🎥
+                    <MdCamera />
+                    {/* 🎥 */}
                 </button>
 
                 <button className="bg-blue-300 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded" onClick={createCall} disabled={!localStream}>
-                    📞
+                    <MdCallMade />
+                    {/* 📞 */}
                 </button>
 
                 <button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" onClick={answerCall} disabled={!localStream}>
-                    📲
+                    <MdCall />
+                    {/* 📲 */}
                 </button>
 
                 <button className="bg-slate-700 hover:bg-slate-950 text-white font-bold py-2 px-4 rounded" onClick={hangUp} disabled={!callActive}>
-                    ❌
+                    <MdCallEnd />
+                    {/* ❌ */}
                 </button>
             </div>
 
