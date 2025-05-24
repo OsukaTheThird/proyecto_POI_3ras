@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     initializeApp,
     getApps
@@ -11,7 +11,8 @@ import {
     updateDoc,
     getDoc,
     onSnapshot,
-    addDoc
+    addDoc,
+    deleteDoc
 } from 'firebase/firestore';
 import { useUser } from 'reactfire';
 import { useChatStore } from '@/store/chat-store';
@@ -60,6 +61,22 @@ const VideoCall: React.FC = () => {
     const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'disconnected' | 'error'>('idle');
     const [error, setError] = useState<string | null>(null);
 
+    useEffect(() => {
+        if (!user?.uid) return;
+
+        const incomingCallRef = doc(firestore, 'callsIncoming', user.uid);
+        const unsubscribe = onSnapshot(incomingCallRef, (snapshot) => {
+            const data = snapshot.data();
+            if (data?.callId && !callActive) {
+                setCallId(data.callId);
+                alert(`📞 Llamada entrante de ${data.fromName || 'Desconocido'}`);
+                // Opcionalmente puedes llamar answerCall() automáticamente:
+                // answerCall();
+            }
+        });
+
+        return () => unsubscribe();
+    }, [user?.uid, callActive]);
     // --- Setup webcam and mic ---
     const setupMedia = async () => {
         try {
@@ -111,6 +128,13 @@ const VideoCall: React.FC = () => {
                     type: offerDescription.type,
                     sdp: offerDescription.sdp,
                 },
+            });
+
+            await setDoc(doc(firestore, 'callsIncoming', chatData.uid), {
+                callId: callDoc.id,
+                fromUid: user?.uid,
+                fromName: user?.displayName,
+                timestamp: Date.now()
             });
 
             onSnapshot(callDoc, (snapshot) => {
@@ -187,11 +211,19 @@ const VideoCall: React.FC = () => {
     };
 
     // --- Hang up ---
-    const hangUp = () => {
+    const hangUp = async () => {
         pcRef.current.close();
-
         localStream?.getTracks().forEach(track => track.stop());
         remoteStream?.getTracks().forEach(track => track.stop());
+
+        if (callId) {
+            await deleteDoc(doc(firestore, 'calls', callId));
+        }
+
+        // 🧹 Borra notificación de llamada entrante
+        if (user?.uid) {
+            await deleteDoc(doc(firestore, 'callsIncoming', user.uid));
+        }
 
         setLocalStream(null);
         setRemoteStream(null);
@@ -202,6 +234,7 @@ const VideoCall: React.FC = () => {
 
         pcRef.current = new RTCPeerConnection(servers);
     };
+
 
     return (
         <body className="text-center text-[#2c3e50] my-[80px] mx-[10px]">

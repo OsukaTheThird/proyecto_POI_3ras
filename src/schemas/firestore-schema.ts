@@ -17,20 +17,6 @@ export interface UserDB {
   rooms: UserRoom[];
 }
 
-// /calls/{callId}
-export interface CallDocument {
-  caller: string;         // UID del que llama
-  callee: string[];       // UIDs de los invitados
-  offer?: RTCSessionDescriptionInit;
-  answer?: RTCSessionDescriptionInit;
-}
-
-// /calls/{callId}/candidates/{candidateId}
-export interface ICECandidate {
-  sender: string;         // UID
-  candidate: RTCIceCandidateInit;
-}
-
 export interface Message {
   message: string;
   timestamp: string;
