@@ -40,11 +40,20 @@ const servers: RTCConfiguration = {
     iceCandidatePoolSize: 10,
 };
 
+interface IncomingCall {
+    callId: string;
+    fromUid: string;
+    fromName: string;
+    timestamp: number;
+}
+
 const VideoCall: React.FC = () => {
 
     const { getChatData } = useChatStore();
     const chatData = getChatData();
     if (!chatData) return null;
+
+
 
     const { data: user } = useUser();
 
@@ -130,12 +139,14 @@ const VideoCall: React.FC = () => {
                 },
             });
 
-            await setDoc(doc(firestore, 'callsIncoming', chatData.uid), {
+            const IncomingCallData: IncomingCall = {
                 callId: callDoc.id,
-                fromUid: user?.uid,
-                fromName: user?.displayName,
+                fromUid: user?.uid || "",
+                fromName: user?.displayName || "Usuario",
                 timestamp: Date.now()
-            });
+            }
+
+            await setDoc(doc(firestore, 'callsIncoming', String(chatData.uid)), IncomingCallData);
 
             onSnapshot(callDoc, (snapshot) => {
                 const data = snapshot.data();

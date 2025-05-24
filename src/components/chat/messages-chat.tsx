@@ -123,10 +123,10 @@ const MessagesChat: React.FC<MessagesChatProps> = ({  }) => {
         });
 
         // Dummy synchronous decryption for demonstration; replace with real logic as needed
-        function decryptMessage(message: string): string {
+/*         function decryptMessage(message: string): string {
           // TODO: Replace with actual decryption logic
           return `[decrypted] ${message}`;
-        }
+        } */
 
 return (
         <Message
@@ -149,6 +149,6 @@ return (
 
 export default MessagesChat;
 
-function decryptMessage(message: any): any {
+function decryptMessage(_message: any): any {
   throw new Error('Function not implemented.');
 }

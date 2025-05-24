@@ -11,7 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { RoomDB, UserRoom } from "@/schemas/firestore-schema";
+import { RoomDB, /* UserRoom */ } from "@/schemas/firestore-schema";
 import { doc, updateDoc, collection, query, where, getDocs, limit, addDoc, arrayUnion } from 'firebase/firestore'
 import { useAuth, useFirestore } from 'reactfire'
 
@@ -89,7 +89,7 @@ const FriendSearch = () => {
       console.log("1. Room creada")
 
       //Agregar la sala a ambos usuarios
-      const currentUserRoom: UserRoom = {
+/*       const currentUserRoom: UserRoom = {
         roomid: roomRef.id,
         lastMessage: "",
         timestamp: "",
@@ -101,7 +101,7 @@ const FriendSearch = () => {
         lastMessage: "",
         timestamp: "",
         friendId: auth.currentUser!.uid,
-      };
+      }; */
 
       const currentUserRef = doc(db, "users", auth.currentUser!.uid);
       const friendRef = doc(db, "users", friendDB.uid);

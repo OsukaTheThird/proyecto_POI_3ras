@@ -15,7 +15,7 @@ type MessageProps = {
 const Message = ({ 
   message, 
   time, 
-  photoURL, 
+  /* photoURL, */ 
   isCurrentUser, 
   isEncrypted,
   isLocation,

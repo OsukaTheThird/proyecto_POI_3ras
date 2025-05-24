@@ -3,7 +3,7 @@ import FriendSearch from "./friend-search";
 import FriendsItem from "./friends-item";
 import { useUser, useFirestore } from "reactfire";
 import { doc, getDoc, onSnapshot } from "firebase/firestore";
-import { UserRoom } from "@/schemas/firestore-schema";
+/* import { UserRoom } from "@/schemas/firestore-schema"; */
 
 interface Friend {
   uid: string;

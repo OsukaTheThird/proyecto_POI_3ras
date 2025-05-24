@@ -15,8 +15,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AuthError, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
-import { useAuth, useFirestore, useStorage } from "reactfire"
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage"
+import { useAuth, useFirestore, /* useStorage */ } from "reactfire"
+//import { getDownloadURL, ref, uploadBytes } from "firebase/storage"
 import { UserDB } from "@/schemas/firestore-schema"
 import { doc, setDoc } from "firebase/firestore"
 import { useLoadingStore } from "@/store/loading-store";
@@ -25,7 +25,7 @@ const Register = () => {
 
   const auth = useAuth();
   const db = useFirestore();
-  const storage = useStorage();
+  //const storage = useStorage();
   const { loading, setLoading } = useLoadingStore();
 
   const form = useForm<z.infer<typeof formSchema>>({

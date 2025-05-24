@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import GroupCreation from "./group-creation";
 import GroupItem from "./group-item";
 import { doc, getDoc, onSnapshot, collection, query, where } from "firebase/firestore";
-import { UserRoom, RoomDB } from "@/schemas/firestore-schema";
+import { /* UserRoom */ RoomDB } from "@/schemas/firestore-schema";
 import { useFirestore, useUser } from "reactfire";
 
 interface Group {
