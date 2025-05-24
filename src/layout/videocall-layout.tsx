@@ -3,6 +3,8 @@ import {
     initializeApp,
     getApps
 } from 'firebase/app';
+import { useUser } from 'reactfire';
+import { useChatStore } from '@/store/chat-store';
 import {
     getFirestore,
     collection,
@@ -13,6 +15,8 @@ import {
     onSnapshot,
     addDoc
 } from 'firebase/firestore';
+import { Button } from '@/components/ui/button';
+import { MdCall, MdCallEnd, MdCallMade, MdCamera } from "react-icons/md";
 
 // --- Firebase Init ---
 const firebaseConfig = {
@@ -37,7 +41,13 @@ const servers: RTCConfiguration = {
     iceCandidatePoolSize: 10,
 };
 
-const VideoCall: React.FC = () => {
+const VideocallLayout: React.FC = () => {
+
+    const { getChatData } = useChatStore();
+    const chatData = getChatData();
+    if (!chatData) return null;
+    const { data: user } = useUser();
+
     const webcamVideoRef = useRef<HTMLVideoElement>(null);
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
     const callInputRef = useRef<HTMLInputElement>(null);
@@ -195,35 +205,69 @@ const VideoCall: React.FC = () => {
     };
 
     return (
-        <div>
-            <h2>WebRTC Video Call</h2>
-
-            <div>
-                <button onClick={setupMedia}>🎥 Habilitar cámara</button>
-                <button onClick={createCall} disabled={!localStream}>📞 Crear llamada</button>
-                <button onClick={answerCall} disabled={!localStream}>📲 Responder</button>
-                <button onClick={hangUp} disabled={!callActive}>❌ Finalizar</button>
-            </div>
-
-            <input
-                ref={callInputRef}
-                placeholder="ID de llamada"
-                value={callId}
-                onChange={(e) => setCallId(e.target.value)}
-                style={{ marginTop: '1rem', width: '100%' }}
-            />
+        <body className="text-center text-[#2c3e50] my-[80px] mx-[10px]">
+            <h1 className='font-semibold text-2xl'>¡Enciende tu webcam!</h1>
 
             <div style={{ marginTop: '1rem' }}>
                 {status !== 'idle' && <p><strong>Estado:</strong> {status}</p>}
                 {error && <p style={{ color: 'red' }}>⚠️ {error}</p>}
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <video ref={webcamVideoRef} autoPlay playsInline muted width="300" />
-                <video ref={remoteVideoRef} autoPlay playsInline width="300" />
+            <div className="flex items-center justify-center">
+
+                <span>
+                    <h3 className='font-semibold'>{user?.displayName || "No name"}</h3>
+                    <video className="w-[40vw] h-[30vw] m-8 bg-[#2c3e50]" ref={webcamVideoRef} autoPlay playsInline muted width="300"></video>
+                    {/* <video ref={webcamVideoRef} autoPlay playsInline muted width="300" /> */}
+                </span>
+
+                <span>
+                    <h3 className="font-semibold">{chatData?.displayName}</h3>
+                    <video className="w-[40vw] h-[30vw] m-8 bg-[#2c3e50]" ref={remoteVideoRef} autoPlay playsInline width="300"></video>
+                    {/* <video ref={remoteVideoRef} autoPlay playsInline width="300" /> */}
+                </span>
+
             </div>
-        </div>
+
+            <div className='flex justify-evenly'>
+                <Button onClick={setupMedia}>
+                    <MdCamera />
+                </Button>
+
+                <Button className='bg-blue-300' onClick={createCall}>
+                    <MdCallMade />
+                </Button>
+
+                <Button className="bg-green-400" onClick={answerCall}>
+                    <MdCall />
+                </Button>
+
+                <Button className="bg-blue-950" onClick={hangUp}>
+                    <MdCallEnd />
+                </Button>
+            </div>
+
+            {/* <div>
+                <button onClick={setupMedia}>🎥 Habilitar cámara</button>
+                <button onClick={createCall} disabled={!localStream}>📞 Crear llamada</button>
+                <button onClick={answerCall} disabled={!localStream}>📲 Responder</button>
+                <button onClick={hangUp} disabled={!callActive}>❌ Finalizar</button>
+            </div> */}
+
+            <div>
+                <br />
+                <input
+                    className='bg-slate-400'
+                    ref={callInputRef}
+                    placeholder="ID de llamada"
+                    value={callId}
+                    onChange={(e) => setCallId(e.target.value)}
+                    style={{ marginTop: '1rem', width: '100%' }}
+                />
+            </div>
+
+        </body>
     );
 };
 
-export default VideoCall;
+export default VideocallLayout;
