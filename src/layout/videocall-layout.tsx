@@ -1,261 +1,229 @@
-import { Button } from '@/components/ui/button';
-import { MdCall, MdCallEnd, MdCallMade, MdCamera } from "react-icons/md";
-import { useAuth, useFirestore, useUser } from 'reactfire';
-import { Friend } from '@/store/chat-store';
-import { useChatStore } from "@/store/chat-store";
-import { useRef } from 'react';
-import { Link } from 'react-router-dom';
-
-//Librerias las cuales mover despues 
+import React, { useRef, useState } from 'react';
+import {
+    initializeApp,
+    getApps
+} from 'firebase/app';
 import {
     getFirestore,
     collection,
     doc,
     setDoc,
+    updateDoc,
     getDoc,
     onSnapshot,
-    addDoc,
-    updateDoc,
-} from "firebase/firestore";
+    addDoc
+} from 'firebase/firestore';
 
+// --- Firebase Init ---
+const firebaseConfig = {
+    apiKey: "AIzaSyBrZX70mKiEHqVoaA5mbR45S3316i0d52w",
+    authDomain: "aplicacion-chat-559ed.firebaseapp.com",
+    projectId: "aplicacion-chat-559ed",
+    storageBucket: "aplicacion-chat-559ed.firebasestorage.app",
+    messagingSenderId: "578679281148",
+    appId: "1:578679281148:web:fe199709b7527a63500e79"
+};
 
-// Inicializar Firebase const app = initializeApp(firebaseConfig); const firestore = getFirestore(app);
+if (!getApps().length) {
+    initializeApp(firebaseConfig);
+}
+const firestore = getFirestore();
 
-interface FriendsCallProps { chat: Friend; }
+// --- ICE Servers ---
+const servers: RTCConfiguration = {
+    iceServers: [
+        { urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] },
+    ],
+    iceCandidatePoolSize: 10,
+};
 
-// Elementos HTML
-
-const VideocallLayout = () => {
-
-
-    const db = useFirestore();
-
+const VideoCall: React.FC = () => {
     const webcamVideoRef = useRef<HTMLVideoElement>(null);
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
-    const webcamButtonRef = useRef<HTMLButtonElement>(null);
-    const callButtonRef = useRef<HTMLButtonElement>(null);
-    const answerButtonRef = useRef<HTMLButtonElement>(null);
-    const hangupButtonRef = useRef<HTMLButtonElement>(null);
     const callInputRef = useRef<HTMLInputElement>(null);
 
-    const servers: RTCConfiguration = {
-        iceServers: [
-            {
-                urls: [
-                    'stun:stun1.l.google.com:19302',
-                    'stun:stun2.l.google.com:19302',
-                ],
-            },
-        ],
-        iceCandidatePoolSize: 10,
+    const pcRef = useRef<RTCPeerConnection>(new RTCPeerConnection(servers));
+    const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+    const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+
+    const [callId, setCallId] = useState('');
+    const [callActive, setCallActive] = useState(false);
+    const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'disconnected' | 'error'>('idle');
+    const [error, setError] = useState<string | null>(null);
+
+    // --- Setup webcam and mic ---
+    const setupMedia = async () => {
+        try {
+            setStatus('connecting');
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            const remote = new MediaStream();
+
+            setLocalStream(stream);
+            setRemoteStream(remote);
+
+            stream.getTracks().forEach(track => pcRef.current.addTrack(track, stream));
+
+            pcRef.current.ontrack = (event) => {
+                event.streams[0].getTracks().forEach(track => remote.addTrack(track));
+            };
+
+            if (webcamVideoRef.current) webcamVideoRef.current.srcObject = stream;
+            if (remoteVideoRef.current) remoteVideoRef.current.srcObject = remote;
+
+            setStatus('idle');
+        } catch (err) {
+            setError('Error al acceder a la cámara o micrófono.');
+            setStatus('error');
+        }
     };
 
-    const pc = new RTCPeerConnection(servers);
-    let localStream: MediaStream | null = null;
-    let remoteStream: MediaStream | null = null;
-
-    const { getChatData } = useChatStore();
-    const chatData = getChatData();
-    if (!chatData) return null;
-
-    const { data: user } = useUser();
-
-    const turnOnWebcam = async () => {
+    // --- Create Call (offer) ---
+    const createCall = async () => {
         try {
-            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            remoteStream = new MediaStream();
+            setStatus('connecting');
+            const callDoc = doc(collection(firestore, 'calls'));
+            const offerCandidates = collection(callDoc, 'offerCandidates');
+            const answerCandidates = collection(callDoc, 'answerCandidates');
 
-            // Añadir tracks a la peer connection
-            localStream.getTracks().forEach((track) => {
-                pc.addTrack(track, localStream!);
-            });
+            setCallId(callDoc.id);
+            if (callInputRef.current) callInputRef.current.value = callDoc.id;
 
-            pc.ontrack = (event) => {
-                console.log("Track recibido:", event.track.kind);
-                event.streams[0].getTracks().forEach((track) => {
-                    remoteStream?.addTrack(track);
-                });
-
-                if (remoteVideoRef.current) {
-                    remoteVideoRef.current!.srcObject = remoteStream;
-                }
-            };
-            // Asignar streams a los videos
-            if (webcamVideoRef.current) {
-                webcamVideoRef.current.srcObject = localStream;
-            }
-            if (remoteVideoRef.current) {
-                remoteVideoRef.current.srcObject = remoteStream;
-            }
-
-
-            // Habilitar botones
-            if (callButtonRef.current) callButtonRef.current.disabled = false;
-            if (answerButtonRef.current) answerButtonRef.current.disabled = false;
-            if (webcamButtonRef.current) webcamButtonRef.current.disabled = true;
-        } catch (err) {
-            console.error('Error accediendo a medios:', err);
-        }
-    }
-
-    const makeCall = async () => {
-        try {
-            // Crear documento para la llamada
-            const callDocRef = doc(collection(db, 'calls'));
-            const offerCandidatesRef = collection(callDocRef, 'offerCandidates');
-            const answerCandidatesRef = collection(callDocRef, 'answerCandidates');
-
-            // Escuchar ICE candidates del oferente
-            pc.onicecandidate = (event) => {
+            pcRef.current.onicecandidate = async (event) => {
                 if (event.candidate) {
-                    addDoc(offerCandidatesRef, event.candidate.toJSON());
+                    await addDoc(offerCandidates, event.candidate.toJSON());
                 }
             };
 
-            const offerDescription = await pc.createOffer();
-            await pc.setLocalDescription(offerDescription);
+            const offerDescription = await pcRef.current.createOffer();
+            await pcRef.current.setLocalDescription(offerDescription);
 
-            // Modificar la SDP para usar H264
-            let sdp = offerDescription.sdp;
-            sdp = sdp.replace('VP8', 'H264');
-            await pc.setLocalDescription(new RTCSessionDescription({ type: 'offer', sdp }));
-
-
-            console.log('Creando oferta...');
-            // Guardar oferta en Firestore
-            await setDoc(callDocRef, {
+            await setDoc(callDoc, {
                 offer: {
-                    sdp: offerDescription.sdp,
                     type: offerDescription.type,
+                    sdp: offerDescription.sdp,
                 },
-                callerId: user?.uid,
-                calleeId: chatData?.uid,
             });
-            console.log('Oferta enviada:', offerDescription);
 
-            // Escuchar respuesta del callee
-            onSnapshot(callDocRef, (snapshot) => {
-                const data = snapshot.data() as { answer?: RTCSessionDescriptionInit };
-                if (!pc.currentRemoteDescription && data?.answer) {
-                    const answerDesc = new RTCSessionDescription(data.answer);
-                    pc.setRemoteDescription(answerDesc);
+            onSnapshot(callDoc, (snapshot) => {
+                const data = snapshot.data();
+                if (data?.answer && !pcRef.current.currentRemoteDescription) {
+                    pcRef.current.setRemoteDescription(new RTCSessionDescription(data.answer));
                 }
             });
 
-            // Escuchar ICE candidates del callee
-            onSnapshot(answerCandidatesRef, (snapshot) => {
-                snapshot.docChanges().forEach((change) => {
+            onSnapshot(answerCandidates, (snapshot) => {
+                snapshot.docChanges().forEach(change => {
                     if (change.type === 'added') {
-                        const data = change.doc.data() as RTCIceCandidateInit;
-                        pc.addIceCandidate(new RTCIceCandidate(data));
+                        const data = change.doc.data();
+                        pcRef.current.addIceCandidate(new RTCIceCandidate(data));
                     }
                 });
             });
 
-            // Habilitar botones
-            if (callButtonRef.current) callButtonRef.current.disabled = false;
+            setCallActive(true);
+            setStatus('connected');
         } catch (err) {
-            console.error('Error creando la llamada:', err);
+            setError('Error creando la llamada.');
+            setStatus('error');
         }
     };
 
+    // --- Answer Call ---
     const answerCall = async () => {
         try {
-            const callId = callInputRef.current?.value;
-            if (!callId) {
-                // manejar error o salir
-                return;
-            }
-            const callDocRef = doc(db, 'calls', callId);
-            const offerCandidatesRef = collection(callDocRef, 'offerCandidates');
-            const answerCandidatesRef = collection(callDocRef, 'answerCandidates');
+            setStatus('connecting');
+            const id = callInputRef.current?.value;
+            if (!id) throw new Error('ID de llamada vacío');
 
-            // Configurar ICE candidate handler para responder
-            pc.onicecandidate = (event) => {
+            const callDoc = doc(firestore, 'calls', id);
+            const answerCandidates = collection(callDoc, 'answerCandidates');
+            const offerCandidates = collection(callDoc, 'offerCandidates');
+
+            pcRef.current.onicecandidate = async (event) => {
                 if (event.candidate) {
-                    addDoc(answerCandidatesRef, event.candidate.toJSON());
+                    await addDoc(answerCandidates, event.candidate.toJSON());
                 }
             };
 
-            // Obtener datos de la llamada
-            const callData = await getDoc(callDocRef);
-            const data = callData.data() as { offer: RTCSessionDescriptionInit };
+            const callData = (await getDoc(callDoc)).data();
+            if (!callData?.offer) throw new Error('No se encontró la oferta');
 
-            // Establecer descripción remota
-            await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+            await pcRef.current.setRemoteDescription(new RTCSessionDescription(callData.offer));
 
-            // Crear y establecer respuesta
-            const answerDescription = await pc.createAnswer();
-            await pc.setLocalDescription(answerDescription);
+            const answerDescription = await pcRef.current.createAnswer();
+            await pcRef.current.setLocalDescription(answerDescription);
 
-            // Guardar respuesta en Firestore
-            await updateDoc(callDocRef, {
+            await updateDoc(callDoc, {
                 answer: {
                     type: answerDescription.type,
                     sdp: answerDescription.sdp,
                 },
             });
 
-            // Escuchar ICE candidates del oferente
-            onSnapshot(offerCandidatesRef, (snapshot) => {
-                snapshot.docChanges().forEach((change) => {
+            onSnapshot(offerCandidates, (snapshot) => {
+                snapshot.docChanges().forEach(change => {
                     if (change.type === 'added') {
-                        const data = change.doc.data() as RTCIceCandidateInit;
-                        pc.addIceCandidate(new RTCIceCandidate(data));
+                        const data = change.doc.data();
+                        pcRef.current.addIceCandidate(new RTCIceCandidate(data));
                     }
                 });
             });
-        } catch (err) {
-            console.error('Error al responder la llamada:', err);
+
+            setCallActive(true);
+            setStatus('connected');
+        } catch (err: any) {
+            setError(err.message || 'Error al responder la llamada.');
+            setStatus('error');
         }
     };
 
+    // --- Hang up ---
+    const hangUp = () => {
+        pcRef.current.close();
 
+        localStream?.getTracks().forEach(track => track.stop());
+        remoteStream?.getTracks().forEach(track => track.stop());
 
+        setLocalStream(null);
+        setRemoteStream(null);
+        setCallActive(false);
+        setCallId('');
+        setStatus('disconnected');
+        setError(null);
 
-    const hangupCall = () => {
-        pc.close();
-
-        localStream = null;
-        remoteStream = null;
-
-    }
+        pcRef.current = new RTCPeerConnection(servers);
+    };
 
     return (
-        <body className="text-center text-[#2c3e50] my-[80px] mx-[10px]">
-            <h1 className='font-semibold text-2xl'>¡Enciende tu webcam!</h1>
-            <br />
-            <div className="flex items-center justify-center" id="videos">
-                <span>
-                    <h3 className="font-semibold">{user?.displayName || "No name"}</h3>
-                    <video className="w-[40vw] h-[30vw] m-8 bg-[#2c3e50]" ref={webcamVideoRef} autoPlay playsInline></video>
-                </span>
-                <span>
-                    <h3 className="font-semibold">{chatData?.displayName}</h3>
-                    <video className="w-[40vw] h-[30vw] m-8 bg-[#2c3e50]" ref={remoteVideoRef} autoPlay playsInline></video>
-                </span>
+        <div>
+            <h2>WebRTC Video Call</h2>
+
+            <div>
+                <button onClick={setupMedia}>🎥 Habilitar cámara</button>
+                <button onClick={createCall} disabled={!localStream}>📞 Crear llamada</button>
+                <button onClick={answerCall} disabled={!localStream}>📲 Responder</button>
+                <button onClick={hangUp} disabled={!callActive}>❌ Finalizar</button>
             </div>
 
-            <div className='flex justify-evenly'>
-                <Button id="webcamButton" onClick={turnOnWebcam} className='bg-slate-400'>
-                    <MdCamera />
-                </Button>
-                <Button id='callButton' onClick={makeCall} className='bg-blue-300'>
-                    <MdCallMade />
-                </Button>
+            <input
+                ref={callInputRef}
+                placeholder="ID de llamada"
+                value={callId}
+                onChange={(e) => setCallId(e.target.value)}
+                style={{ marginTop: '1rem', width: '100%' }}
+            />
 
-                <Button id="answerButton" onClick={answerCall} className="bg-green-400">
-                    <MdCall />
-                </Button>
-
-                <Link to="/" >
-                    <Button id="hangupButton" onClick={hangupCall} className="bg-blue-950">
-                        <MdCallEnd />
-                    </Button>
-                </Link>
+            <div style={{ marginTop: '1rem' }}>
+                {status !== 'idle' && <p><strong>Estado:</strong> {status}</p>}
+                {error && <p style={{ color: 'red' }}>⚠️ {error}</p>}
             </div>
-        </body>
+
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <video ref={webcamVideoRef} autoPlay playsInline muted width="300" />
+                <video ref={remoteVideoRef} autoPlay playsInline width="300" />
+            </div>
+        </div>
     );
-}
+};
 
-export default VideocallLayout
+export default VideoCall;
