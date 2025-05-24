@@ -13,6 +13,8 @@ import {
     onSnapshot,
     addDoc
 } from 'firebase/firestore';
+import { useUser } from 'reactfire';
+import { useChatStore } from '@/store/chat-store';
 
 // --- Firebase Init ---
 const firebaseConfig = {
@@ -38,6 +40,13 @@ const servers: RTCConfiguration = {
 };
 
 const VideoCall: React.FC = () => {
+
+    const { getChatData } = useChatStore();
+    const chatData = getChatData();
+    if (!chatData) return null;
+
+    const { data: user } = useUser();
+
     const webcamVideoRef = useRef<HTMLVideoElement>(null);
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
     const callInputRef = useRef<HTMLInputElement>(null);
@@ -204,7 +213,11 @@ const VideoCall: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-center">
+
+                <h2 className="font-semibold">{user?.displayName || "No name"}</h2>
                 <video className="w-[40vw] h-[30vw] m-8" ref={webcamVideoRef} autoPlay playsInline muted width="300" />
+
+                <h2 className="font-semibold">{chatData?.displayName}</h2>
                 <video className="w-[40vw] h-[30vw] m-8" ref={remoteVideoRef} autoPlay playsInline width="300" />
             </div>
 
