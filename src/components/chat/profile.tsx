@@ -34,7 +34,7 @@ const Profile = () => {
             alt="User profile"
             className="rounded-md mx-auto w-24 h-24 object-cover border-2 border-gray-200"
           />
-          
+
           <h2 className="text-xl font-bold text-gray-700">Perfil</h2>
           <p className="font-semibold">{user?.displayName || "Usuario sin nombre"}</p>
           <p className="text-gray-500">{user?.email}</p>

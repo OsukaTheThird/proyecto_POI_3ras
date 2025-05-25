@@ -15,8 +15,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AuthError, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
-import { useAuth, useFirestore, /* useStorage */ } from "reactfire"
-//import { getDownloadURL, ref, uploadBytes } from "firebase/storage"
+import { useAuth, useFirestore, useStorage } from "reactfire"
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage"
 import { UserDB } from "@/schemas/firestore-schema"
 import { doc, setDoc } from "firebase/firestore"
 import { useLoadingStore } from "@/store/loading-store";
@@ -25,7 +25,7 @@ const Register = () => {
 
   const auth = useAuth();
   const db = useFirestore();
-  //const storage = useStorage();
+  const storage = useStorage();
   const { loading, setLoading } = useLoadingStore();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -52,13 +52,13 @@ const Register = () => {
 
       //Cambiar esto para almacenar localmente en el servidor 
       // 1. Guardar foto de perfil en storage
-      //const storageRef = ref(storage, "fotoPerfil/" + user.uid + ".jpg")
-      //await uploadBytes(storageRef, values.photoURL);
+      const storageRef = ref(storage, "fotoPerfil/" + user.uid + ".jpg")
+      await uploadBytes(storageRef, values.photoURL);
 
       // 2. Recuperar la foto de perfil de la base de datos
-      //const photoURL = await getDownloadURL(storageRef)
+      const photoURL = await getDownloadURL(storageRef)
 
-      const photoURL = "fotoEjemplo";
+      //const photoURL = "fotoEjemplo";
 
       // 3. Mostrar/Actualizar la foto de perfil del usuario
       await updateProfile(user, {

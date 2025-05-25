@@ -51,11 +51,11 @@ export default function StoreLayout() {
     const savedPoints = localStorage.getItem('points');
     const savedBorders = localStorage.getItem('ownedBorders');
     const savedSelectedBorder = localStorage.getItem('selectedBorder');
-    
+
     if (savedPoints) setPoints(parseInt(savedPoints));
     if (savedBorders) setOwnedBorders(JSON.parse(savedBorders));
     if (savedSelectedBorder) setSelectedBorder(savedSelectedBorder);
-    
+
     // Simular carga de PayPal
     const timer = setTimeout(() => setPaypalReady(true), 1000);
     return () => clearTimeout(timer);
@@ -65,13 +65,13 @@ export default function StoreLayout() {
     if (points >= productPrice) {
       const newPoints = points - productPrice;
       setPoints(newPoints);
-      
+
       const newOwnedBorders = [...ownedBorders, productId];
       setOwnedBorders(newOwnedBorders);
-      
+
       localStorage.setItem('points', newPoints.toString());
       localStorage.setItem('ownedBorders', JSON.stringify(newOwnedBorders));
-      
+
       alert(`¡Has comprado el borde con tus puntos!`);
     } else {
       alert("No tienes suficientes puntos para comprar este borde");
@@ -158,61 +158,61 @@ export default function StoreLayout() {
                         <div className="w-full">
                           {paypalReady && (
                             <PayPalButtons
-  style={{ layout: "horizontal" }}
-  createOrder={(_data, actions) => {
-    return actions.order.create({
-      purchase_units: [
-        {
-          description: `Borde ${product.name}`,
-          amount: {
-            value: product.priceUSD.toString(),
-            currency_code: "USD",
-            breakdown: {
-              item_total: {
-                value: product.priceUSD.toString(),
-                currency_code: "USD"
-              }
-            }
-          },
-          items: [
-            {
-              name: `Borde ${product.name}`,
-              unit_amount: {
-                value: product.priceUSD.toString(),
-                currency_code: "USD"
-              },
-              quantity: "1",
-              category: "DIGITAL_GOODS"
-            }
-          ]
-        }
-      ],
-      application_context: {
-        shipping_preference: "NO_SHIPPING",
-        user_action: "PAY_NOW"
-      },
-      intent: "CAPTURE"
-    });
-  }}
-  onApprove={async (_data, actions) => {
-    try {
-      const details = await actions.order?.capture();
-      console.log("Detalles de la transacción:", details);
-      handlePaypalSuccess(product);
-      // No return value needed, must return void
-    } catch (err) {
-      console.error("Error al capturar el pago:", err);
-      alert("Ocurrió un error al procesar tu pago");
-    }
-  }}
-  onError={(err) => {
-    console.error("Error en PayPal:", err);
-    alert("Error al procesar el pago con PayPal");
-  }}
-  onCancel={() => {
-    console.log("El usuario canceló el pago");
-  }}
-/>)}
+                              style={{ layout: "horizontal" }}
+                              createOrder={(_data, actions) => {
+                                return actions.order.create({
+                                  purchase_units: [
+                                    {
+                                      description: `Borde ${product.name}`,
+                                      amount: {
+                                        value: product.priceUSD.toString(),
+                                        currency_code: "USD",
+                                        breakdown: {
+                                          item_total: {
+                                            value: product.priceUSD.toString(),
+                                            currency_code: "USD"
+                                          }
+                                        }
+                                      },
+                                      items: [
+                                        {
+                                          name: `Borde ${product.name}`,
+                                          unit_amount: {
+                                            value: product.priceUSD.toString(),
+                                            currency_code: "USD"
+                                          },
+                                          quantity: "1",
+                                          category: "DIGITAL_GOODS"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  application_context: {
+                                    shipping_preference: "NO_SHIPPING",
+                                    user_action: "PAY_NOW"
+                                  },
+                                  intent: "CAPTURE"
+                                });
+                              }}
+                              onApprove={async (_data, actions) => {
+                                try {
+                                  const details = await actions.order?.capture();
+                                  console.log("Detalles de la transacción:", details);
+                                  handlePaypalSuccess(product);
+                                  // No return value needed, must return void
+                                } catch (err) {
+                                  console.error("Error al capturar el pago:", err);
+                                  alert("Ocurrió un error al procesar tu pago");
+                                }
+                              }}
+                              onError={(err) => {
+                                console.error("Error en PayPal:", err);
+                                alert("Error al procesar el pago con PayPal");
+                              }}
+                              onCancel={() => {
+                                console.log("El usuario canceló el pago");
+                              }}
+                            />)}
                         </div>
                       </>
                     )}
