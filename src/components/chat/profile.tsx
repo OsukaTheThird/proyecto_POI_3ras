@@ -3,12 +3,14 @@ import { Button } from "../ui/button";
 import { useChatStore } from "@/store/chat-store";
 import { useState } from 'react';
 import { Lock, LockOpen, Loader2 } from "lucide-react";
+import { toast } from "sonner"; // o tu librería de notificaciones
 
 const Profile = () => {
   const auth = useAuth();
   const { data: user } = useUser();
-  const { resetChat, toggleEncryption, isEncrypted } = useChatStore();
+  const { resetChat, toggleEncryption, isEncrypted, decryptAllMessages } = useChatStore();
   const [isEncrypting, setIsEncrypting] = useState(false);
+  const [isDecrypting, setIsDecrypting] = useState(false);
 
   const handleClickLogout = async () => {
     resetChat();
@@ -16,10 +18,27 @@ const Profile = () => {
   };
 
   const handleToggleEncryption = async () => {
+    if (isEncrypted) {
+      // Si ya está encriptado, desencriptar primero
+      setIsDecrypting(true);
+      try {
+        await decryptAllMessages();
+        toast.success("Todos los mensajes han sido desencriptados");
+      } catch (error) {
+        toast.error("Error al desencriptar los mensajes");
+      } finally {
+        setIsDecrypting(false);
+      }
+    }
+    
     setIsEncrypting(true);
     try {
-      // Alternar encriptación sin argumentos
-      toggleEncryption();
+      await toggleEncryption();
+      toast.success(
+        isEncrypted 
+          ? "Encriptación desactivada" 
+          : "Encriptación activada. Los nuevos mensajes serán encriptados"
+      );
     } finally {
       setIsEncrypting(false);
     }
@@ -54,33 +73,33 @@ const Profile = () => {
               )}
             </h3>
 
-            <Button
-              onClick={handleToggleEncryption}
-              disabled={isEncrypting}
-              variant={isEncrypted ? "destructive" : "default"}
-              className="w-full gap-2"
-            >
-              {isEncrypting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  {isEncrypted ? "Desactivando..." : "Activando..."}
-                </>
-              ) : (
-                <>
-                  {isEncrypted ? (
-                    <>
-                      <LockOpen className="h-4 w-4" />
-                      Desactivar encriptación
-                    </>
-                  ) : (
-                    <>
-                      <Lock className="h-4 w-4" />
-                      Activar encriptación
-                    </>
-                  )}
-                </>
-              )}
-            </Button>
+          <Button
+            onClick={handleToggleEncryption}
+            disabled={isEncrypting || isDecrypting}
+            variant={isEncrypted ? "destructive" : "default"}
+            className="w-full gap-2"
+          >
+            {(isEncrypting || isDecrypting) ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {isEncrypted ? "Desencriptando..." : "Encriptando..."}
+              </>
+            ) : (
+              <>
+                {isEncrypted ? (
+                  <>
+                    <LockOpen className="h-4 w-4" />
+                    Desactivar encriptación
+                  </>
+                ) : (
+                  <>
+                    <Lock className="h-4 w-4" />
+                    Activar encriptación
+                  </>
+                )}
+              </>
+            )}
+          </Button>
           </div>
 
           <Button

@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import { useChatStore } from '@/store/chat-store';
-import { FaMapMarkerAlt } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaLock } from 'react-icons/fa';
 
 type MessageProps = {
   message: string;
@@ -21,12 +21,28 @@ const Message = ({
   isLocation,
   senderName 
 }: MessageProps) => {
-  const { decryptMessage } = useChatStore();
+  const { decryptedMessages } = useChatStore();
 
+  
   const renderContent = () => {
+    if (isEncrypted) {
+      // Buscar en los mensajes desencriptados
+      const decrypted = decryptedMessages[message];
+      if (decrypted) {
+        return decrypted;
+      }
+      
+      // Si no está desencriptado aún
+      return (
+        <div className="flex items-center gap-1 text-sm italic">
+          <FaLock className="h-3 w-3" />
+          Mensaje encriptado
+        </div>
+      );
+    }
     // Mensaje de ubicación
     if (isLocation) {
-      const url = isEncrypted ? decryptMessage(message) : message;
+      const url = isEncrypted ? decryptedMessages[message] : message;
       return (
         <a 
           href={url} 
@@ -38,27 +54,6 @@ const Message = ({
           Ver ubicación
         </a>
       );
-    }
-
-    // Mensaje encriptado
-    if (isEncrypted) {
-      if (isCurrentUser) {
-        // Mostrar mensaje encriptado crudo para el usuario que lo envió
-        return (
-          <div className="flex items-center gap-1">
-            <span>🔒</span>
-            <span className="font-mono text-sm">{message.substring(0, 10)}...</span>
-          </div>
-        );
-      } else {
-        // Intentar desencriptar mensajes de otros usuarios
-        try {
-          const decrypted = decryptMessage(message);
-          return decrypted || "🔒 [Contenido no disponible]";
-        } catch {
-          return "🔒 [Error al desencriptar]";
-        }
-      }
     }
 
     // Mensaje normal

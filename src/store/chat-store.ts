@@ -19,6 +19,12 @@ export interface Group {
 
 type ChatType = 'friend' | 'group';
 
+interface Message {
+  isEncrypted: boolean;
+  message: string | { encrypted: string };
+  // Puedes agregar más campos según tu modelo real
+}
+
 interface ChatStore {
   currentChat: {
     type: ChatType;
@@ -40,14 +46,19 @@ interface ChatStore {
   setEncryptionKey: (password: string) => void;
   encryptMessage: (message: string) => { encrypted: string; original: string };
   decryptMessage: (encrypted: string) => string;
-  toggleEncryption: () => void;
+  decryptedMessages: Record<string, string>;
+  toggleEncryption: () => Promise<void>;
+  decryptAllMessages: () => Promise<void>;
+  messages: Message[]; // <-- Add this line
 }
 
 export const useChatStore = create<ChatStore>((set, get) => ({
   currentChat: null,
   isEncrypted: false,
   encryptionKey: null,
-  
+  decryptedMessages: {},
+  messages: [], // <-- Initialize messages as an empty array
+
   setFriend: (friend: Friend) => set({ 
     currentChat: { 
       type: 'friend', 
@@ -131,17 +142,29 @@ decryptMessage: (encrypted) => {
     } catch {
       return encrypted;
     }
+  },  toggleEncryption: async () => {
+    const { isEncrypted, decryptAllMessages } = get();
+    if (isEncrypted) {
+      await decryptAllMessages();
+    }
+    set({ isEncrypted: !isEncrypted });
   },
-  toggleEncryption: async () => {
-  const { isEncrypted } = get();
-  
-  if (isEncrypted) {
-    // Desactivar encriptación
-    set({ isEncrypted: false, encryptionKey: null });
-  } else {
-    // Activar encriptación con clave fija (o sin clave)
-    const fixedKey = "clave-secreta"; // O genera una clave aleatoria
-    set({ isEncrypted: true, encryptionKey: fixedKey });
-  }
-},
+
+  decryptAllMessages: async () => {
+    const { messages, decryptMessage } = get();
+    const decrypted: Record<string, string> = {};
+    
+    for (const msg of messages) {
+      if (msg.isEncrypted && typeof msg.message === 'object' && 'encrypted' in msg.message) {
+        try {
+          decrypted[msg.message.encrypted] = await decryptMessage(msg.message.encrypted);
+        } catch (error) {
+          console.error("Error decrypting message:", error);
+          decrypted[msg.message.encrypted] = "🔒 Error al desencriptar";
+        }
+      }
+    }
+    
+    set({ decryptedMessages: decrypted });
+  },
 }));

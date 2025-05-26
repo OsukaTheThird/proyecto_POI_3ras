@@ -47,14 +47,24 @@ const MessagesFooter: React.FC<MessagesFooterProps> = ({ }) => {
       }
     };
   }, [currentUser, setTypingStatus]);
-
- const handleSendMessage = async () => {
+const handleSendMessage = async () => {
   if (!message || !currentUser || !roomId || !chatData) return;
 
   try {
-    // Encriptar el mensaje si está activa la encriptación (¡con await!)
-    const messageToSend = isEncrypted ? await encryptMessage(message) : message;
-    const lastMessageDisplay = isEncrypted ? "🔒 Mensaje encriptado" : message;
+    let messageToSend;
+    let lastMessageDisplay;
+    
+    if (isEncrypted) {
+      const encrypted = await encryptMessage(message);
+      messageToSend = {
+        encrypted: encrypted,
+        original: message // Opcional: solo para referencia en el objeto
+      };
+      lastMessageDisplay = "🔒 Mensaje encriptado";
+    } else {
+      messageToSend = message;
+      lastMessageDisplay = message;
+    }
 
     const messageData = {
       message: messageToSend,
@@ -109,30 +119,41 @@ const MessagesFooter: React.FC<MessagesFooterProps> = ({ }) => {
     await updateDoc(userRef, { rooms: updatedRooms });
   };
 
-  const handleSendLocation = async () => {
-    if (!currentUser || !roomId || !chatData) return;
+const handleSendLocation = async () => {
+  if (!currentUser || !roomId || !chatData) return;
 
-    try {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
-          const locationMessage = isEncrypted ? encryptMessage(mapsUrl) : mapsUrl;
-          const lastMessageDisplay = "📍 Ubicación compartida";
-
-          const messageData = {
-            message: locationMessage,
-            timestamp: new Date().toISOString(),
-            uid: currentUser.uid,
-            isLocation: true,
-            isEncrypted: isEncrypted
+  try {
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+        
+        let messageToSend;
+        let lastMessageDisplay = "📍 Ubicación compartida";
+        
+        if (isEncrypted) {
+          const encrypted = await encryptMessage(mapsUrl);
+          messageToSend = {
+            encrypted: encrypted,
+            original: mapsUrl
           };
+        } else {
+          messageToSend = mapsUrl;
+        }
 
-          await updateDoc(doc(db, "rooms", roomId), {
-            messages: arrayUnion(messageData),
-            lastMessage: lastMessageDisplay,
-            lastMessageTime: new Date().toISOString()
-          });
+        const messageData = {
+          message: messageToSend,
+          timestamp: new Date().toISOString(),
+          uid: currentUser.uid,
+          isLocation: true,
+          isEncrypted: isEncrypted
+        };
+
+        await updateDoc(doc(db, "rooms", roomId), {
+          messages: arrayUnion(messageData),
+          lastMessage: lastMessageDisplay,
+          lastMessageTime: new Date().toISOString()
+        });
 
           if (isGroupChat()) {
             const groupData = chatData as Group;
